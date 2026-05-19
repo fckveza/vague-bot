@@ -10,7 +10,7 @@ Unofficial bot for **Vague Chat** - the Android chat application.
 - **End-to-End Encryption (E2EE)** - Secure communication with the Vague platform
 - **Real-time Chat Stream** - Listen and respond to messages in real-time
 - **Selfbot Functions** - Custom automated responses and actions
-- **Perang Bot** - Battle system with other bots
+- **War Bot** - Battle system with other bots
 - **gRPC Backend** - Fast and efficient communication protocol
 
 ## Requirements
