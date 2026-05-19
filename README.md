@@ -2,7 +2,7 @@
 
 Unofficial bot for **Vague Chat** - the Android chat application.
 
-> For entertainment purposes: fun bot, selfbot, perang bot (bot war), and other automated features.
+> For entertainment purposes: fun bot, selfbot, war bot, and other automated features.
 
 ## Features
 
@@ -105,6 +105,16 @@ vague-bot/
 - **Encryption**: End-to-end encryption using X25519 + AES-GCM
 - **Authentication**: Token refresh mechanism with automatic re-authentication
 - **Reconnection**: Automatic reconnection with exponential backoff
+
+---
+
+## Get Free Tokens
+
+**Free 10 tokens for new users!** 🎁
+
+Register and chat account here: https://link.vague-infinity.com/users/ax2
+
+---
 
 ## Disclaimer
 
