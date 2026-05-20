@@ -62,6 +62,16 @@ Edit `config.json` to customize bot settings:
 }
 ```
 
+### Selfbot Mode
+
+To enable selfbot mode, edit `main.go` and set:
+
+```go
+vaguebot.Selfbot = true
+```
+
+This allows the bot to respond to commands from your own account.
+
 ## Usage
 
 ```bash
@@ -95,6 +105,7 @@ vague-bot/
     ├── config.go        # Configuration loader
     ├── e2ee.go          # E2EE implementation
     ├── events.go        # Event handlers
+    ├── secondary.go     # Secondary commands handler
     ├── store.go         # Account store
     └── util.go          # Utilities
 ```
