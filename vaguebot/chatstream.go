@@ -90,7 +90,6 @@ func (c *Client) ChatStreamMultiEvent(ctx context.Context) error {
 				continue
 			}
 			if event := response.GetEvent(); event != nil {
-				log.Println(event)
 				c.maxRevision(event.GetRevision())
 				switch event.EventType {
 				case pb.EventType_EVENT_SELF_INVITED:
@@ -131,12 +130,27 @@ func (c *Client) ChatStreamMultiEvent(ctx context.Context) error {
 				case pb.EventType_EVENT_SELF_CANCEL_INVITATION:
 					log.Printf("[%s] received self cancel invitation event: %v", c.CurrentCID(), event)
 				case pb.EventType_EVENT_MESSAGE_RECEIVED:
+					if Selfbot {
+						continue
+					}
 					message := event.GetMessage()
 					plainText, err := c.decryptMessageText(ctx, message)
 					if err != nil {
 						log.Printf("[%s] failed to decrypt message %s: %v", c.CurrentCID(), message.GetMessageId(), err)
 						continue
 					}
+					c.handleTextCommandIfNeeded(ctx, message, plainText)
+				case pb.EventType_EVENT_MESSAGE_SENT:
+					if !Selfbot {
+						continue
+					}
+					message := event.GetMessage()
+					plainText, err := c.decryptMessageText(ctx, message)
+					if err != nil {
+						log.Printf("[%s] failed to decrypt message %s: %v", c.CurrentCID(), message.GetMessageId(), err)
+						continue
+					}
+					log.Println(plainText)
 					c.handleTextCommandIfNeeded(ctx, message, plainText)
 
 				case pb.EventType_EVENT_CONTACT_ADDED:
@@ -171,7 +185,7 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 	}
 
 	from := strings.TrimSpace(message.GetMessageFrom())
-	if from == "" || from == c.CurrentCID() {
+	if from == "" {
 		return
 	}
 

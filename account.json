@@ -1,26 +1,15 @@
 {
   "accounts": [
     {
-      "cid": "wea7595cdf7ce68871e75c7e86fa3d",
-      "email": "9ba2qwjysa@vague-infinity.com",
-      "passwd": "Your password",
+      "cid": "your_cid_here",
+      "email": "your_email@example.com",
+      "passwd": "your_password",
       "token": "",
       "refresh_token": "",
-      "revision": 1779188130538846956,
-      "device_id": "wea7595cdf7ce68871e75c7e86fa3d",
-      "e2ee_public_key": "U0q2Xgb7DA+Yybby6YkCGr9g5YLgy9GYvMErTnZTeGw=",
-      "e2ee_private_key": "mP/jSaYoam+IZyFpQq+NR/vBcPv2oLBJB5uiweRW6y4="
-    },
-    {
-      "cid": "wdc66fe505323caddae7bec72ec7af",
-      "email": "d63w95bcqh@vague-infinity.com",
-      "passwd": "Your password",
-      "token": "",
-      "refresh_token": "",
-      "revision": 3013,
-      "device_id": "wdc66fe505323caddae7bec72ec7af",
-      "e2ee_public_key": "np7D4e3c6Y6otdugrKhLdW6c6IYaXd4Wc5fLLyR10DA=",
-      "e2ee_private_key": "tWV4bLnqOm7Irk8h/MVyHWTk0zXqtv/hGpcsSJenb/s="
+      "revision": 0,
+      "device_id": "your_device_id",
+      "e2ee_public_key": "your_public_key",
+      "e2ee_private_key": "your_private_key"
     }
   ]
 }

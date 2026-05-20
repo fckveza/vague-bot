@@ -9,8 +9,13 @@ require (
 )
 
 require (
+	github.com/liyue201/goqr v0.0.0-20200803022322-df443203d4ea // indirect
+	github.com/mdp/qrterminal/v3 v3.2.1 // indirect
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
 	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/term v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
+	rsc.io/qr v0.2.0 // indirect
 )

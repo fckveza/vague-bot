@@ -17,59 +17,84 @@ import (
 )
 
 func main() {
-	cfg := vaguebot.LoadConfig()
-
-	store, err := vaguebot.NewAccountStore(cfg.AccountFile)
-	if err != nil {
-		log.Fatalf("failed init account store: %v", err)
-	}
-
-	accounts := store.Accounts()
-	if len(accounts) == 0 {
-		log.Fatalf("no accounts found in %s", cfg.AccountFile)
-	}
-
+	vaguebot.Selfbot = true
+	var clients []*vaguebot.Client
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
-
-	clients := make([]*vaguebot.Client, 0, len(accounts))
-	for _, account := range accounts {
-		client, err := vaguebot.CreateClient(ctx, account, cfg, store.Upsert)
+	if vaguebot.Selfbot {
+		client, _ := vaguebot.SelfbotLogin()
+		if client == nil {
+			log.Fatalf("selfbot login failed")
+		}
+		clients = []*vaguebot.Client{client}
+		log.Printf("running selfbot client on device login")
+		ress, err := client.GetLastEventRevision(ctx)
 		if err != nil {
-			log.Printf("skip account cid=%s email=%s: %v", account.CID, account.Email, err)
-			continue
+			log.Panicf("failed to get last event revision for cid=%s: %v", client.CID, err)
+		} else {
+			client.Revision = ress.GetCurrentRevision()
+			log.Println(client.Revision)
+		}
+	} else {
+		cfg := vaguebot.LoadConfig()
+
+		store, err := vaguebot.NewAccountStore(cfg.AccountFile)
+		if err != nil {
+			log.Fatalf("failed init account store: %v", err)
 		}
 
-		profile, err := client.GetProfile(ctx)
-		if err != nil {
-			res, err := client.RefreshAuthToken(ctx, client.RefreshToken)
+		accounts := store.Accounts()
+		if len(accounts) == 0 {
+			log.Fatalf("no accounts found in %s", cfg.AccountFile)
+		}
+
+		clients = make([]*vaguebot.Client, 0, len(accounts))
+		for _, account := range accounts {
+			client, err := vaguebot.CreateClient(ctx, account, cfg, store.Upsert)
 			if err != nil {
-				log.Printf("failed to refresh auth token for cid=%s email=%s: %v", account.CID, account.Email, err)
+				log.Printf("skip account cid=%s email=%s: %v", account.CID, account.Email, err)
+				continue
+			}
+
+			profile, err := client.GetProfile(ctx)
+			if err != nil {
+				res, err := client.RefreshAuthToken(ctx, client.RefreshToken)
+				if err != nil {
+					log.Printf("failed to refresh auth token for cid=%s email=%s: %v", account.CID, account.Email, err)
+					_ = client.Close()
+					continue
+				} else {
+					client.Token = res.GetToken()
+					client.RefreshToken = res.GetRefreshToken()
+					log.Printf("refreshed auth token for cid=%s email=%s", account.CID, account.Email)
+				}
+			}
+			if profile != nil {
+				log.Printf("bot active cid=%s display_name=%s", profile.GetCid(), profile.GetDisplayName())
+			} else {
+				log.Printf("bot active cid=%s", client.CurrentCID())
+			}
+
+			if err := client.EnsureE2EEIdentity(ctx); err != nil {
+				log.Printf("failed init e2ee key for cid=%s: %v", client.CurrentCID(), err)
 				_ = client.Close()
 				continue
+			}
+
+			if err := client.AcceptAllPendingInvitations(ctx); err != nil {
+				log.Printf("[%s] failed accepting invitations: %v", client.CurrentCID(), err)
+			}
+			_ = client.PersistState()
+			clients = append(clients, client)
+			ress, err := client.GetLastEventRevision(ctx)
+			if err != nil {
+				log.Printf("failed to get last event revision for cid=%s: %v", client.CID, err)
 			} else {
-				client.Token = res.GetToken()
-				client.RefreshToken = res.GetRefreshToken()
-				log.Printf("refreshed auth token for cid=%s email=%s", account.CID, account.Email)
+				client.Revision = ress.GetCurrentRevision()
+				log.Println(client.Revision)
 			}
 		}
-		if profile != nil {
-			log.Printf("bot active cid=%s display_name=%s", profile.GetCid(), profile.GetDisplayName())
-		} else {
-			log.Printf("bot active cid=%s", client.CurrentCID())
-		}
-
-		if err := client.EnsureE2EEIdentity(ctx); err != nil {
-			log.Printf("failed init e2ee key for cid=%s: %v", client.CurrentCID(), err)
-			_ = client.Close()
-			continue
-		}
-
-		if err := client.AcceptAllPendingInvitations(ctx); err != nil {
-			log.Printf("[%s] failed accepting invitations: %v", client.CurrentCID(), err)
-		}
-		_ = client.PersistState()
-		clients = append(clients, client)
+		log.Printf("running %d bot client(s) on %s using %s", len(clients), cfg.Target, cfg.AccountFile)
 	}
 
 	if len(clients) == 0 {
@@ -77,7 +102,6 @@ func main() {
 	}
 
 	vaguebot.SetPeerClients(clients)
-	log.Printf("running %d bot client(s) on %s using %s", len(clients), cfg.Target, cfg.AccountFile)
 
 	var wg sync.WaitGroup
 	for _, client := range clients {

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git pull *)",
+      "Read(//Users/fckveza/Downloads/**)",
+      "Bash(unzip -o vaguebotnew.zip -d vague-bot-new)",
+      "Bash(find /Users/fckveza -name \"vaguebotnew.zip\" 2>/dev/null)",
+      "Read(//Users/fckveza/**)"
+    ]
+  }
+}

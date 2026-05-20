@@ -20,44 +20,49 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VagueService_ChatStreamMultipleEvent_FullMethodName = "/chat.VagueService/ChatStreamMultipleEvent"
-	VagueService_GetLastEventRevision_FullMethodName    = "/chat.VagueService/GetLastEventRevision"
-	VagueService_GetLastViewRevision_FullMethodName     = "/chat.VagueService/GetLastViewRevision"
-	VagueService_RegisterPublicKey_FullMethodName       = "/chat.VagueService/RegisterPublicKey"
-	VagueService_GetPublicKey_FullMethodName            = "/chat.VagueService/GetPublicKey"
-	VagueService_SendMessage_FullMethodName             = "/chat.VagueService/SendMessage"
-	VagueService_GetMessage_FullMethodName              = "/chat.VagueService/GetMessage"
-	VagueService_DeleteMessage_FullMethodName           = "/chat.VagueService/DeleteMessage"
-	VagueService_RefreshToken_FullMethodName            = "/chat.VagueService/RefreshToken"
-	VagueService_EditMessage_FullMethodName             = "/chat.VagueService/EditMessage"
-	VagueService_GetOriginMessage_FullMethodName        = "/chat.VagueService/GetOriginMessage"
-	VagueService_UploadMedia_FullMethodName             = "/chat.VagueService/UploadMedia"
-	VagueService_BackupE2EEKey_FullMethodName           = "/chat.VagueService/BackupE2EEKey"
-	VagueService_RestoreE2EEKey_FullMethodName          = "/chat.VagueService/RestoreE2EEKey"
-	VagueService_UpdateSettings_FullMethodName          = "/chat.VagueService/UpdateSettings"
-	VagueService_GetSettings_FullMethodName             = "/chat.VagueService/GetSettings"
-	VagueService_GetProfile_FullMethodName              = "/chat.VagueService/GetProfile"
-	VagueService_UpdateProfile_FullMethodName           = "/chat.VagueService/UpdateProfile"
-	VagueService_SearchUsers_FullMethodName             = "/chat.VagueService/SearchUsers"
-	VagueService_AddFriend_FullMethodName               = "/chat.VagueService/AddFriend"
-	VagueService_GetFriends_FullMethodName              = "/chat.VagueService/GetFriends"
-	VagueService_GetContacts_FullMethodName             = "/chat.VagueService/GetContacts"
-	VagueService_UpdateContact_FullMethodName           = "/chat.VagueService/UpdateContact"
-	VagueService_GetBlockedUsers_FullMethodName         = "/chat.VagueService/GetBlockedUsers"
-	VagueService_CreateGroup_FullMethodName             = "/chat.VagueService/CreateGroup"
-	VagueService_GetGroup_FullMethodName                = "/chat.VagueService/GetGroup"
-	VagueService_GetMyGroups_FullMethodName             = "/chat.VagueService/GetMyGroups"
-	VagueService_UpdateGroup_FullMethodName             = "/chat.VagueService/UpdateGroup"
-	VagueService_InviteMember_FullMethodName            = "/chat.VagueService/InviteMember"
-	VagueService_RemoveMember_FullMethodName            = "/chat.VagueService/RemoveMember"
-	VagueService_RespondInvitation_FullMethodName       = "/chat.VagueService/RespondInvitation"
-	VagueService_CancelInvitation_FullMethodName        = "/chat.VagueService/CancelInvitation"
-	VagueService_GetMyGroupInvitations_FullMethodName   = "/chat.VagueService/GetMyGroupInvitations"
-	VagueService_GenerateGroupUrl_FullMethodName        = "/chat.VagueService/GenerateGroupUrl"
-	VagueService_JoinGroupByUrl_FullMethodName          = "/chat.VagueService/JoinGroupByUrl"
-	VagueService_FindGroupByInviteCode_FullMethodName   = "/chat.VagueService/FindGroupByInviteCode"
-	VagueService_GetGroupWithDisplayName_FullMethodName = "/chat.VagueService/GetGroupWithDisplayName"
-	VagueService_LeaveGroup_FullMethodName              = "/chat.VagueService/LeaveGroup"
+	VagueService_ChatStreamMultipleEvent_FullMethodName  = "/chat.VagueService/ChatStreamMultipleEvent"
+	VagueService_GetLastEventRevision_FullMethodName     = "/chat.VagueService/GetLastEventRevision"
+	VagueService_GetLastViewRevision_FullMethodName      = "/chat.VagueService/GetLastViewRevision"
+	VagueService_RegisterPublicKey_FullMethodName        = "/chat.VagueService/RegisterPublicKey"
+	VagueService_GetPublicKey_FullMethodName             = "/chat.VagueService/GetPublicKey"
+	VagueService_SendMessage_FullMethodName              = "/chat.VagueService/SendMessage"
+	VagueService_GetMessage_FullMethodName               = "/chat.VagueService/GetMessage"
+	VagueService_DeleteMessage_FullMethodName            = "/chat.VagueService/DeleteMessage"
+	VagueService_RefreshToken_FullMethodName             = "/chat.VagueService/RefreshToken"
+	VagueService_EditMessage_FullMethodName              = "/chat.VagueService/EditMessage"
+	VagueService_GetOriginMessage_FullMethodName         = "/chat.VagueService/GetOriginMessage"
+	VagueService_UploadMedia_FullMethodName              = "/chat.VagueService/UploadMedia"
+	VagueService_BackupE2EEKey_FullMethodName            = "/chat.VagueService/BackupE2EEKey"
+	VagueService_RestoreE2EEKey_FullMethodName           = "/chat.VagueService/RestoreE2EEKey"
+	VagueService_UpdateSettings_FullMethodName           = "/chat.VagueService/UpdateSettings"
+	VagueService_GetSettings_FullMethodName              = "/chat.VagueService/GetSettings"
+	VagueService_GetProfile_FullMethodName               = "/chat.VagueService/GetProfile"
+	VagueService_UpdateProfile_FullMethodName            = "/chat.VagueService/UpdateProfile"
+	VagueService_SearchUsers_FullMethodName              = "/chat.VagueService/SearchUsers"
+	VagueService_AddFriend_FullMethodName                = "/chat.VagueService/AddFriend"
+	VagueService_GetFriends_FullMethodName               = "/chat.VagueService/GetFriends"
+	VagueService_GetContacts_FullMethodName              = "/chat.VagueService/GetContacts"
+	VagueService_UpdateContact_FullMethodName            = "/chat.VagueService/UpdateContact"
+	VagueService_GetBlockedUsers_FullMethodName          = "/chat.VagueService/GetBlockedUsers"
+	VagueService_CreateGroup_FullMethodName              = "/chat.VagueService/CreateGroup"
+	VagueService_GetGroup_FullMethodName                 = "/chat.VagueService/GetGroup"
+	VagueService_GetMyGroups_FullMethodName              = "/chat.VagueService/GetMyGroups"
+	VagueService_UpdateGroup_FullMethodName              = "/chat.VagueService/UpdateGroup"
+	VagueService_InviteMember_FullMethodName             = "/chat.VagueService/InviteMember"
+	VagueService_RemoveMember_FullMethodName             = "/chat.VagueService/RemoveMember"
+	VagueService_RespondInvitation_FullMethodName        = "/chat.VagueService/RespondInvitation"
+	VagueService_CancelInvitation_FullMethodName         = "/chat.VagueService/CancelInvitation"
+	VagueService_GetMyGroupInvitations_FullMethodName    = "/chat.VagueService/GetMyGroupInvitations"
+	VagueService_GenerateGroupUrl_FullMethodName         = "/chat.VagueService/GenerateGroupUrl"
+	VagueService_JoinGroupByUrl_FullMethodName           = "/chat.VagueService/JoinGroupByUrl"
+	VagueService_FindGroupByInviteCode_FullMethodName    = "/chat.VagueService/FindGroupByInviteCode"
+	VagueService_GetGroupWithDisplayName_FullMethodName  = "/chat.VagueService/GetGroupWithDisplayName"
+	VagueService_LeaveGroup_FullMethodName               = "/chat.VagueService/LeaveGroup"
+	VagueService_LoginSecondaryDevice_FullMethodName     = "/chat.VagueService/LoginSecondaryDevice"
+	VagueService_CreateDeviceLoginLink_FullMethodName    = "/chat.VagueService/CreateDeviceLoginLink"
+	VagueService_GetDeviceLoginLinkStatus_FullMethodName = "/chat.VagueService/GetDeviceLoginLinkStatus"
+	VagueService_PollDeviceLoginLink_FullMethodName      = "/chat.VagueService/PollDeviceLoginLink"
+	VagueService_ListSessions_FullMethodName             = "/chat.VagueService/ListSessions"
 )
 
 // VagueServiceClient is the client API for VagueService service.
@@ -102,6 +107,11 @@ type VagueServiceClient interface {
 	FindGroupByInviteCode(ctx context.Context, in *FindGroupByInviteCodeRequest, opts ...grpc.CallOption) (*FindGroupByInviteCodeResponse, error)
 	GetGroupWithDisplayName(ctx context.Context, in *GetGroupWithDisplayNameRequest, opts ...grpc.CallOption) (*GetGroupWithDisplayNameResponse, error)
 	LeaveGroup(ctx context.Context, in *LeaveGroupRequest, opts ...grpc.CallOption) (*LeaveGroupResponse, error)
+	LoginSecondaryDevice(ctx context.Context, in *LoginSecondaryDeviceRequest, opts ...grpc.CallOption) (*LoginSecondaryDeviceResponse, error)
+	CreateDeviceLoginLink(ctx context.Context, in *CreateDeviceLoginLinkRequest, opts ...grpc.CallOption) (*CreateDeviceLoginLinkResponse, error)
+	GetDeviceLoginLinkStatus(ctx context.Context, in *GetDeviceLoginLinkStatusRequest, opts ...grpc.CallOption) (*GetDeviceLoginLinkStatusResponse, error)
+	PollDeviceLoginLink(ctx context.Context, in *PollDeviceLoginLinkRequest, opts ...grpc.CallOption) (*PollDeviceLoginLinkResponse, error)
+	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
 }
 
 type vagueServiceClient struct {
@@ -495,6 +505,56 @@ func (c *vagueServiceClient) LeaveGroup(ctx context.Context, in *LeaveGroupReque
 	return out, nil
 }
 
+func (c *vagueServiceClient) LoginSecondaryDevice(ctx context.Context, in *LoginSecondaryDeviceRequest, opts ...grpc.CallOption) (*LoginSecondaryDeviceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginSecondaryDeviceResponse)
+	err := c.cc.Invoke(ctx, VagueService_LoginSecondaryDevice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vagueServiceClient) CreateDeviceLoginLink(ctx context.Context, in *CreateDeviceLoginLinkRequest, opts ...grpc.CallOption) (*CreateDeviceLoginLinkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateDeviceLoginLinkResponse)
+	err := c.cc.Invoke(ctx, VagueService_CreateDeviceLoginLink_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vagueServiceClient) GetDeviceLoginLinkStatus(ctx context.Context, in *GetDeviceLoginLinkStatusRequest, opts ...grpc.CallOption) (*GetDeviceLoginLinkStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDeviceLoginLinkStatusResponse)
+	err := c.cc.Invoke(ctx, VagueService_GetDeviceLoginLinkStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vagueServiceClient) PollDeviceLoginLink(ctx context.Context, in *PollDeviceLoginLinkRequest, opts ...grpc.CallOption) (*PollDeviceLoginLinkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PollDeviceLoginLinkResponse)
+	err := c.cc.Invoke(ctx, VagueService_PollDeviceLoginLink_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *vagueServiceClient) ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSessionsResponse)
+	err := c.cc.Invoke(ctx, VagueService_ListSessions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VagueServiceServer is the server API for VagueService service.
 // All implementations must embed UnimplementedVagueServiceServer
 // for forward compatibility.
@@ -537,6 +597,11 @@ type VagueServiceServer interface {
 	FindGroupByInviteCode(context.Context, *FindGroupByInviteCodeRequest) (*FindGroupByInviteCodeResponse, error)
 	GetGroupWithDisplayName(context.Context, *GetGroupWithDisplayNameRequest) (*GetGroupWithDisplayNameResponse, error)
 	LeaveGroup(context.Context, *LeaveGroupRequest) (*LeaveGroupResponse, error)
+	LoginSecondaryDevice(context.Context, *LoginSecondaryDeviceRequest) (*LoginSecondaryDeviceResponse, error)
+	CreateDeviceLoginLink(context.Context, *CreateDeviceLoginLinkRequest) (*CreateDeviceLoginLinkResponse, error)
+	GetDeviceLoginLinkStatus(context.Context, *GetDeviceLoginLinkStatusRequest) (*GetDeviceLoginLinkStatusResponse, error)
+	PollDeviceLoginLink(context.Context, *PollDeviceLoginLinkRequest) (*PollDeviceLoginLinkResponse, error)
+	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
 	mustEmbedUnimplementedVagueServiceServer()
 }
 
@@ -660,6 +725,21 @@ func (UnimplementedVagueServiceServer) GetGroupWithDisplayName(context.Context, 
 }
 func (UnimplementedVagueServiceServer) LeaveGroup(context.Context, *LeaveGroupRequest) (*LeaveGroupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method LeaveGroup not implemented")
+}
+func (UnimplementedVagueServiceServer) LoginSecondaryDevice(context.Context, *LoginSecondaryDeviceRequest) (*LoginSecondaryDeviceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method LoginSecondaryDevice not implemented")
+}
+func (UnimplementedVagueServiceServer) CreateDeviceLoginLink(context.Context, *CreateDeviceLoginLinkRequest) (*CreateDeviceLoginLinkResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateDeviceLoginLink not implemented")
+}
+func (UnimplementedVagueServiceServer) GetDeviceLoginLinkStatus(context.Context, *GetDeviceLoginLinkStatusRequest) (*GetDeviceLoginLinkStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDeviceLoginLinkStatus not implemented")
+}
+func (UnimplementedVagueServiceServer) PollDeviceLoginLink(context.Context, *PollDeviceLoginLinkRequest) (*PollDeviceLoginLinkResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PollDeviceLoginLink not implemented")
+}
+func (UnimplementedVagueServiceServer) ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSessions not implemented")
 }
 func (UnimplementedVagueServiceServer) mustEmbedUnimplementedVagueServiceServer() {}
 func (UnimplementedVagueServiceServer) testEmbeddedByValue()                      {}
@@ -1355,6 +1435,96 @@ func _VagueService_LeaveGroup_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VagueService_LoginSecondaryDevice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginSecondaryDeviceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VagueServiceServer).LoginSecondaryDevice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VagueService_LoginSecondaryDevice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VagueServiceServer).LoginSecondaryDevice(ctx, req.(*LoginSecondaryDeviceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VagueService_CreateDeviceLoginLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDeviceLoginLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VagueServiceServer).CreateDeviceLoginLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VagueService_CreateDeviceLoginLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VagueServiceServer).CreateDeviceLoginLink(ctx, req.(*CreateDeviceLoginLinkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VagueService_GetDeviceLoginLinkStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDeviceLoginLinkStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VagueServiceServer).GetDeviceLoginLinkStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VagueService_GetDeviceLoginLinkStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VagueServiceServer).GetDeviceLoginLinkStatus(ctx, req.(*GetDeviceLoginLinkStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VagueService_PollDeviceLoginLink_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PollDeviceLoginLinkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VagueServiceServer).PollDeviceLoginLink(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VagueService_PollDeviceLoginLink_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VagueServiceServer).PollDeviceLoginLink(ctx, req.(*PollDeviceLoginLinkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _VagueService_ListSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSessionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VagueServiceServer).ListSessions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VagueService_ListSessions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VagueServiceServer).ListSessions(ctx, req.(*ListSessionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VagueService_ServiceDesc is the grpc.ServiceDesc for VagueService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1509,6 +1679,26 @@ var VagueService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LeaveGroup",
 			Handler:    _VagueService_LeaveGroup_Handler,
+		},
+		{
+			MethodName: "LoginSecondaryDevice",
+			Handler:    _VagueService_LoginSecondaryDevice_Handler,
+		},
+		{
+			MethodName: "CreateDeviceLoginLink",
+			Handler:    _VagueService_CreateDeviceLoginLink_Handler,
+		},
+		{
+			MethodName: "GetDeviceLoginLinkStatus",
+			Handler:    _VagueService_GetDeviceLoginLinkStatus_Handler,
+		},
+		{
+			MethodName: "PollDeviceLoginLink",
+			Handler:    _VagueService_PollDeviceLoginLink_Handler,
+		},
+		{
+			MethodName: "ListSessions",
+			Handler:    _VagueService_ListSessions_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

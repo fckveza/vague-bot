@@ -24,6 +24,8 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+var Selfbot = true
+
 type PersistAccountFunc func(AccountRecord) error
 
 type recipientBundleKey struct {
@@ -119,25 +121,28 @@ func snapshotPeerClients() []*Client {
 }
 
 func CreateClient(ctx context.Context, account AccountRecord, cfg Config, persist PersistAccountFunc) (*Client, error) {
-	//router := NewEventRouter()
-	client := &Client{
-		CID:          strings.TrimSpace(account.CID),
-		Token:        strings.TrimSpace(account.Token),
-		RefreshToken: strings.TrimSpace(account.RefreshToken),
-		Revision:     account.Revision,
-		deviceID:     chooseDeviceID(account),
-		cfg:          cfg,
-		persist:      persist,
-		//router:          router,
-		e2eePublicB64:   strings.TrimSpace(account.E2EEPublic),
-		e2eePrivateB64:  strings.TrimSpace(account.E2EEPrivate),
-		handledMessages: make(map[string]struct{}),
-		messageOrder:    make([]string, 0, 256),
-		recipientPK:     make(map[string][]byte),
-		groupPK:         make(map[string][]byte),
+	var client *Client
+	if persist == nil && account.CID == "" {
+		client = &Client{cfg: cfg}
+		client.CID = "SELFBOT"
+	} else {
+		client = &Client{
+			CID:          strings.TrimSpace(account.CID),
+			Token:        strings.TrimSpace(account.Token),
+			RefreshToken: strings.TrimSpace(account.RefreshToken),
+			Revision:     account.Revision,
+			deviceID:     chooseDeviceID(account),
+			cfg:          cfg,
+			persist:      persist,
+			//router:          router,
+			e2eePublicB64:   strings.TrimSpace(account.E2EEPublic),
+			e2eePrivateB64:  strings.TrimSpace(account.E2EEPrivate),
+			handledMessages: make(map[string]struct{}),
+			messageOrder:    make([]string, 0, 256),
+			recipientPK:     make(map[string][]byte),
+			groupPK:         make(map[string][]byte),
+		}
 	}
-	//client.registerDefaultHandlers()
-
 	dialCtx, cancel := context.WithTimeout(ctx, cfg.UnaryTimeout)
 	defer cancel()
 
@@ -163,13 +168,7 @@ func CreateClient(ctx context.Context, account AccountRecord, cfg Config, persis
 
 	client.GrpcConn = conn
 	client.GrpcClient = pb.NewVagueServiceClient(conn)
-	ress, err := client.GetLastEventRevision(ctx)
-	if err != nil {
-		log.Printf("failed to get last event revision for cid=%s: %v", client.CID, err)
-	} else {
-		client.Revision = ress.GetCurrentRevision()
-		log.Println(client.Revision)
-	}
+
 	return client, nil
 }
 

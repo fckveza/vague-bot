@@ -9438,6 +9438,786 @@ func (x *RefreshTokenResponse) GetExpiresIn() int64 {
 	return 0
 }
 
+type LoginSecondaryDeviceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeviceName    string                 `protobuf:"bytes,1,opt,name=device_name,json=deviceName,proto3" json:"device_name,omitempty"`
+	AppName       string                 `protobuf:"bytes,2,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginSecondaryDeviceRequest) Reset() {
+	*x = LoginSecondaryDeviceRequest{}
+	mi := &file_bot_proto_msgTypes[120]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginSecondaryDeviceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginSecondaryDeviceRequest) ProtoMessage() {}
+
+func (x *LoginSecondaryDeviceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[120]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginSecondaryDeviceRequest.ProtoReflect.Descriptor instead.
+func (*LoginSecondaryDeviceRequest) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{120}
+}
+
+func (x *LoginSecondaryDeviceRequest) GetDeviceName() string {
+	if x != nil {
+		return x.DeviceName
+	}
+	return ""
+}
+
+func (x *LoginSecondaryDeviceRequest) GetAppName() string {
+	if x != nil {
+		return x.AppName
+	}
+	return ""
+}
+
+type LoginSecondaryDeviceResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Status          RequestStatus          `protobuf:"varint,1,opt,name=status,proto3,enum=chat.RequestStatus" json:"status,omitempty"`
+	ResponseMessage string                 `protobuf:"bytes,2,opt,name=response_message,json=responseMessage,proto3" json:"response_message,omitempty"`
+	RequestCode     string                 `protobuf:"bytes,3,opt,name=request_code,json=requestCode,proto3" json:"request_code,omitempty"`
+	PollToken       string                 `protobuf:"bytes,4,opt,name=poll_token,json=pollToken,proto3" json:"poll_token,omitempty"`
+	LoginLink       string                 `protobuf:"bytes,5,opt,name=login_link,json=loginLink,proto3" json:"login_link,omitempty"`
+	ExpiresAt       int64                  `protobuf:"varint,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *LoginSecondaryDeviceResponse) Reset() {
+	*x = LoginSecondaryDeviceResponse{}
+	mi := &file_bot_proto_msgTypes[121]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginSecondaryDeviceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginSecondaryDeviceResponse) ProtoMessage() {}
+
+func (x *LoginSecondaryDeviceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[121]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginSecondaryDeviceResponse.ProtoReflect.Descriptor instead.
+func (*LoginSecondaryDeviceResponse) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{121}
+}
+
+func (x *LoginSecondaryDeviceResponse) GetStatus() RequestStatus {
+	if x != nil {
+		return x.Status
+	}
+	return RequestStatus_SUCCESS
+}
+
+func (x *LoginSecondaryDeviceResponse) GetResponseMessage() string {
+	if x != nil {
+		return x.ResponseMessage
+	}
+	return ""
+}
+
+func (x *LoginSecondaryDeviceResponse) GetRequestCode() string {
+	if x != nil {
+		return x.RequestCode
+	}
+	return ""
+}
+
+func (x *LoginSecondaryDeviceResponse) GetPollToken() string {
+	if x != nil {
+		return x.PollToken
+	}
+	return ""
+}
+
+func (x *LoginSecondaryDeviceResponse) GetLoginLink() string {
+	if x != nil {
+		return x.LoginLink
+	}
+	return ""
+}
+
+func (x *LoginSecondaryDeviceResponse) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+type CreateDeviceLoginLinkRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeviceName    string                 `protobuf:"bytes,1,opt,name=device_name,json=deviceName,proto3" json:"device_name,omitempty"`
+	AppName       string                 `protobuf:"bytes,2,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateDeviceLoginLinkRequest) Reset() {
+	*x = CreateDeviceLoginLinkRequest{}
+	mi := &file_bot_proto_msgTypes[122]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateDeviceLoginLinkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateDeviceLoginLinkRequest) ProtoMessage() {}
+
+func (x *CreateDeviceLoginLinkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[122]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateDeviceLoginLinkRequest.ProtoReflect.Descriptor instead.
+func (*CreateDeviceLoginLinkRequest) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{122}
+}
+
+func (x *CreateDeviceLoginLinkRequest) GetDeviceName() string {
+	if x != nil {
+		return x.DeviceName
+	}
+	return ""
+}
+
+func (x *CreateDeviceLoginLinkRequest) GetAppName() string {
+	if x != nil {
+		return x.AppName
+	}
+	return ""
+}
+
+type CreateDeviceLoginLinkResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Status          RequestStatus          `protobuf:"varint,1,opt,name=status,proto3,enum=chat.RequestStatus" json:"status,omitempty"`
+	ResponseMessage string                 `protobuf:"bytes,2,opt,name=response_message,json=responseMessage,proto3" json:"response_message,omitempty"`
+	RequestCode     string                 `protobuf:"bytes,3,opt,name=request_code,json=requestCode,proto3" json:"request_code,omitempty"`
+	PollToken       string                 `protobuf:"bytes,4,opt,name=poll_token,json=pollToken,proto3" json:"poll_token,omitempty"`
+	LoginLink       string                 `protobuf:"bytes,5,opt,name=login_link,json=loginLink,proto3" json:"login_link,omitempty"`
+	ExpiresAt       int64                  `protobuf:"varint,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *CreateDeviceLoginLinkResponse) Reset() {
+	*x = CreateDeviceLoginLinkResponse{}
+	mi := &file_bot_proto_msgTypes[123]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateDeviceLoginLinkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateDeviceLoginLinkResponse) ProtoMessage() {}
+
+func (x *CreateDeviceLoginLinkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[123]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateDeviceLoginLinkResponse.ProtoReflect.Descriptor instead.
+func (*CreateDeviceLoginLinkResponse) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{123}
+}
+
+func (x *CreateDeviceLoginLinkResponse) GetStatus() RequestStatus {
+	if x != nil {
+		return x.Status
+	}
+	return RequestStatus_SUCCESS
+}
+
+func (x *CreateDeviceLoginLinkResponse) GetResponseMessage() string {
+	if x != nil {
+		return x.ResponseMessage
+	}
+	return ""
+}
+
+func (x *CreateDeviceLoginLinkResponse) GetRequestCode() string {
+	if x != nil {
+		return x.RequestCode
+	}
+	return ""
+}
+
+func (x *CreateDeviceLoginLinkResponse) GetPollToken() string {
+	if x != nil {
+		return x.PollToken
+	}
+	return ""
+}
+
+func (x *CreateDeviceLoginLinkResponse) GetLoginLink() string {
+	if x != nil {
+		return x.LoginLink
+	}
+	return ""
+}
+
+func (x *CreateDeviceLoginLinkResponse) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+type GetDeviceLoginLinkStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RequestCode   string                 `protobuf:"bytes,1,opt,name=request_code,json=requestCode,proto3" json:"request_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDeviceLoginLinkStatusRequest) Reset() {
+	*x = GetDeviceLoginLinkStatusRequest{}
+	mi := &file_bot_proto_msgTypes[124]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDeviceLoginLinkStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDeviceLoginLinkStatusRequest) ProtoMessage() {}
+
+func (x *GetDeviceLoginLinkStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[124]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDeviceLoginLinkStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetDeviceLoginLinkStatusRequest) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{124}
+}
+
+func (x *GetDeviceLoginLinkStatusRequest) GetRequestCode() string {
+	if x != nil {
+		return x.RequestCode
+	}
+	return ""
+}
+
+type GetDeviceLoginLinkStatusResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Status              RequestStatus          `protobuf:"varint,1,opt,name=status,proto3,enum=chat.RequestStatus" json:"status,omitempty"`
+	ResponseMessage     string                 `protobuf:"bytes,2,opt,name=response_message,json=responseMessage,proto3" json:"response_message,omitempty"`
+	State               string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	RequestCode         string                 `protobuf:"bytes,4,opt,name=request_code,json=requestCode,proto3" json:"request_code,omitempty"`
+	RequesterDeviceName string                 `protobuf:"bytes,5,opt,name=requester_device_name,json=requesterDeviceName,proto3" json:"requester_device_name,omitempty"`
+	RequesterLocation   string                 `protobuf:"bytes,6,opt,name=requester_location,json=requesterLocation,proto3" json:"requester_location,omitempty"`
+	RequesterAppName    string                 `protobuf:"bytes,7,opt,name=requester_app_name,json=requesterAppName,proto3" json:"requester_app_name,omitempty"`
+	ApproverCid         string                 `protobuf:"bytes,8,opt,name=approver_cid,json=approverCid,proto3" json:"approver_cid,omitempty"`
+	ExpiresAt           int64                  `protobuf:"varint,9,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) Reset() {
+	*x = GetDeviceLoginLinkStatusResponse{}
+	mi := &file_bot_proto_msgTypes[125]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDeviceLoginLinkStatusResponse) ProtoMessage() {}
+
+func (x *GetDeviceLoginLinkStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[125]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDeviceLoginLinkStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetDeviceLoginLinkStatusResponse) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{125}
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) GetStatus() RequestStatus {
+	if x != nil {
+		return x.Status
+	}
+	return RequestStatus_SUCCESS
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) GetResponseMessage() string {
+	if x != nil {
+		return x.ResponseMessage
+	}
+	return ""
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) GetRequestCode() string {
+	if x != nil {
+		return x.RequestCode
+	}
+	return ""
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) GetRequesterDeviceName() string {
+	if x != nil {
+		return x.RequesterDeviceName
+	}
+	return ""
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) GetRequesterLocation() string {
+	if x != nil {
+		return x.RequesterLocation
+	}
+	return ""
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) GetRequesterAppName() string {
+	if x != nil {
+		return x.RequesterAppName
+	}
+	return ""
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) GetApproverCid() string {
+	if x != nil {
+		return x.ApproverCid
+	}
+	return ""
+}
+
+func (x *GetDeviceLoginLinkStatusResponse) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+type PollDeviceLoginLinkRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RequestCode   string                 `protobuf:"bytes,1,opt,name=request_code,json=requestCode,proto3" json:"request_code,omitempty"`
+	PollToken     string                 `protobuf:"bytes,2,opt,name=poll_token,json=pollToken,proto3" json:"poll_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PollDeviceLoginLinkRequest) Reset() {
+	*x = PollDeviceLoginLinkRequest{}
+	mi := &file_bot_proto_msgTypes[126]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PollDeviceLoginLinkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PollDeviceLoginLinkRequest) ProtoMessage() {}
+
+func (x *PollDeviceLoginLinkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[126]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PollDeviceLoginLinkRequest.ProtoReflect.Descriptor instead.
+func (*PollDeviceLoginLinkRequest) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{126}
+}
+
+func (x *PollDeviceLoginLinkRequest) GetRequestCode() string {
+	if x != nil {
+		return x.RequestCode
+	}
+	return ""
+}
+
+func (x *PollDeviceLoginLinkRequest) GetPollToken() string {
+	if x != nil {
+		return x.PollToken
+	}
+	return ""
+}
+
+type PollDeviceLoginLinkResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Status          RequestStatus          `protobuf:"varint,1,opt,name=status,proto3,enum=chat.RequestStatus" json:"status,omitempty"`
+	ResponseMessage string                 `protobuf:"bytes,2,opt,name=response_message,json=responseMessage,proto3" json:"response_message,omitempty"`
+	State           string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	RequestCode     string                 `protobuf:"bytes,4,opt,name=request_code,json=requestCode,proto3" json:"request_code,omitempty"`
+	Token           string                 `protobuf:"bytes,5,opt,name=token,proto3" json:"token,omitempty"`
+	RefreshToken    string                 `protobuf:"bytes,6,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	UserId          string                 `protobuf:"bytes,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Username        string                 `protobuf:"bytes,8,opt,name=username,proto3" json:"username,omitempty"`
+	ExpiresAt       int64                  `protobuf:"varint,9,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *PollDeviceLoginLinkResponse) Reset() {
+	*x = PollDeviceLoginLinkResponse{}
+	mi := &file_bot_proto_msgTypes[127]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PollDeviceLoginLinkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PollDeviceLoginLinkResponse) ProtoMessage() {}
+
+func (x *PollDeviceLoginLinkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[127]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PollDeviceLoginLinkResponse.ProtoReflect.Descriptor instead.
+func (*PollDeviceLoginLinkResponse) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{127}
+}
+
+func (x *PollDeviceLoginLinkResponse) GetStatus() RequestStatus {
+	if x != nil {
+		return x.Status
+	}
+	return RequestStatus_SUCCESS
+}
+
+func (x *PollDeviceLoginLinkResponse) GetResponseMessage() string {
+	if x != nil {
+		return x.ResponseMessage
+	}
+	return ""
+}
+
+func (x *PollDeviceLoginLinkResponse) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *PollDeviceLoginLinkResponse) GetRequestCode() string {
+	if x != nil {
+		return x.RequestCode
+	}
+	return ""
+}
+
+func (x *PollDeviceLoginLinkResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *PollDeviceLoginLinkResponse) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *PollDeviceLoginLinkResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *PollDeviceLoginLinkResponse) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *PollDeviceLoginLinkResponse) GetExpiresAt() int64 {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return 0
+}
+
+type Session struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	DeviceId      string                 `protobuf:"bytes,2,opt,name=device_id,json=deviceId,proto3" json:"device_id,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	LastActiveAt  int64                  `protobuf:"varint,4,opt,name=last_active_at,json=lastActiveAt,proto3" json:"last_active_at,omitempty"`
+	IsCurrent     bool                   `protobuf:"varint,5,opt,name=is_current,json=isCurrent,proto3" json:"is_current,omitempty"`
+	DeviceName    string                 `protobuf:"bytes,6,opt,name=device_name,json=deviceName,proto3" json:"device_name,omitempty"`
+	Location      string                 `protobuf:"bytes,7,opt,name=location,proto3" json:"location,omitempty"`
+	AppName       string                 `protobuf:"bytes,8,opt,name=app_name,json=appName,proto3" json:"app_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Session) Reset() {
+	*x = Session{}
+	mi := &file_bot_proto_msgTypes[128]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Session) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Session) ProtoMessage() {}
+
+func (x *Session) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[128]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Session.ProtoReflect.Descriptor instead.
+func (*Session) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{128}
+}
+
+func (x *Session) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *Session) GetDeviceId() string {
+	if x != nil {
+		return x.DeviceId
+	}
+	return ""
+}
+
+func (x *Session) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *Session) GetLastActiveAt() int64 {
+	if x != nil {
+		return x.LastActiveAt
+	}
+	return 0
+}
+
+func (x *Session) GetIsCurrent() bool {
+	if x != nil {
+		return x.IsCurrent
+	}
+	return false
+}
+
+func (x *Session) GetDeviceName() string {
+	if x != nil {
+		return x.DeviceName
+	}
+	return ""
+}
+
+func (x *Session) GetLocation() string {
+	if x != nil {
+		return x.Location
+	}
+	return ""
+}
+
+func (x *Session) GetAppName() string {
+	if x != nil {
+		return x.AppName
+	}
+	return ""
+}
+
+type ListSessionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListSessionsRequest) Reset() {
+	*x = ListSessionsRequest{}
+	mi := &file_bot_proto_msgTypes[129]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSessionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSessionsRequest) ProtoMessage() {}
+
+func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[129]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
+func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{129}
+}
+
+type ListSessionsResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Status          RequestStatus          `protobuf:"varint,1,opt,name=status,proto3,enum=chat.RequestStatus" json:"status,omitempty"`
+	ResponseMessage string                 `protobuf:"bytes,2,opt,name=response_message,json=responseMessage,proto3" json:"response_message,omitempty"`
+	Sessions        []*Session             `protobuf:"bytes,3,rep,name=sessions,proto3" json:"sessions,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ListSessionsResponse) Reset() {
+	*x = ListSessionsResponse{}
+	mi := &file_bot_proto_msgTypes[130]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListSessionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListSessionsResponse) ProtoMessage() {}
+
+func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bot_proto_msgTypes[130]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
+func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
+	return file_bot_proto_rawDescGZIP(), []int{130}
+}
+
+func (x *ListSessionsResponse) GetStatus() RequestStatus {
+	if x != nil {
+		return x.Status
+	}
+	return RequestStatus_SUCCESS
+}
+
+func (x *ListSessionsResponse) GetResponseMessage() string {
+	if x != nil {
+		return x.ResponseMessage
+	}
+	return ""
+}
+
+func (x *ListSessionsResponse) GetSessions() []*Session {
+	if x != nil {
+		return x.Sessions
+	}
+	return nil
+}
+
 var File_bot_proto protoreflect.FileDescriptor
 
 const file_bot_proto_rawDesc = "" +
@@ -10210,7 +10990,81 @@ const file_bot_proto_rawDesc = "" +
 	"\x05token\x18\x02 \x01(\tR\x05token\x12#\n" +
 	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\x12\x1d\n" +
 	"\n" +
-	"expires_in\x18\x04 \x01(\x03R\texpiresIn*\x81\x0e\n" +
+	"expires_in\x18\x04 \x01(\x03R\texpiresIn\"Y\n" +
+	"\x1bLoginSecondaryDeviceRequest\x12\x1f\n" +
+	"\vdevice_name\x18\x01 \x01(\tR\n" +
+	"deviceName\x12\x19\n" +
+	"\bapp_name\x18\x02 \x01(\tR\aappName\"\xf6\x01\n" +
+	"\x1cLoginSecondaryDeviceResponse\x12+\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x13.chat.RequestStatusR\x06status\x12)\n" +
+	"\x10response_message\x18\x02 \x01(\tR\x0fresponseMessage\x12!\n" +
+	"\frequest_code\x18\x03 \x01(\tR\vrequestCode\x12\x1d\n" +
+	"\n" +
+	"poll_token\x18\x04 \x01(\tR\tpollToken\x12\x1d\n" +
+	"\n" +
+	"login_link\x18\x05 \x01(\tR\tloginLink\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x06 \x01(\x03R\texpiresAt\"Z\n" +
+	"\x1cCreateDeviceLoginLinkRequest\x12\x1f\n" +
+	"\vdevice_name\x18\x01 \x01(\tR\n" +
+	"deviceName\x12\x19\n" +
+	"\bapp_name\x18\x02 \x01(\tR\aappName\"\xf7\x01\n" +
+	"\x1dCreateDeviceLoginLinkResponse\x12+\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x13.chat.RequestStatusR\x06status\x12)\n" +
+	"\x10response_message\x18\x02 \x01(\tR\x0fresponseMessage\x12!\n" +
+	"\frequest_code\x18\x03 \x01(\tR\vrequestCode\x12\x1d\n" +
+	"\n" +
+	"poll_token\x18\x04 \x01(\tR\tpollToken\x12\x1d\n" +
+	"\n" +
+	"login_link\x18\x05 \x01(\tR\tloginLink\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\x06 \x01(\x03R\texpiresAt\"D\n" +
+	"\x1fGetDeviceLoginLinkStatusRequest\x12!\n" +
+	"\frequest_code\x18\x01 \x01(\tR\vrequestCode\"\x86\x03\n" +
+	" GetDeviceLoginLinkStatusResponse\x12+\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x13.chat.RequestStatusR\x06status\x12)\n" +
+	"\x10response_message\x18\x02 \x01(\tR\x0fresponseMessage\x12\x14\n" +
+	"\x05state\x18\x03 \x01(\tR\x05state\x12!\n" +
+	"\frequest_code\x18\x04 \x01(\tR\vrequestCode\x122\n" +
+	"\x15requester_device_name\x18\x05 \x01(\tR\x13requesterDeviceName\x12-\n" +
+	"\x12requester_location\x18\x06 \x01(\tR\x11requesterLocation\x12,\n" +
+	"\x12requester_app_name\x18\a \x01(\tR\x10requesterAppName\x12!\n" +
+	"\fapprover_cid\x18\b \x01(\tR\vapproverCid\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\t \x01(\x03R\texpiresAt\"^\n" +
+	"\x1aPollDeviceLoginLinkRequest\x12!\n" +
+	"\frequest_code\x18\x01 \x01(\tR\vrequestCode\x12\x1d\n" +
+	"\n" +
+	"poll_token\x18\x02 \x01(\tR\tpollToken\"\xbd\x02\n" +
+	"\x1bPollDeviceLoginLinkResponse\x12+\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x13.chat.RequestStatusR\x06status\x12)\n" +
+	"\x10response_message\x18\x02 \x01(\tR\x0fresponseMessage\x12\x14\n" +
+	"\x05state\x18\x03 \x01(\tR\x05state\x12!\n" +
+	"\frequest_code\x18\x04 \x01(\tR\vrequestCode\x12\x14\n" +
+	"\x05token\x18\x05 \x01(\tR\x05token\x12#\n" +
+	"\rrefresh_token\x18\x06 \x01(\tR\frefreshToken\x12\x17\n" +
+	"\auser_id\x18\a \x01(\tR\x06userId\x12\x1a\n" +
+	"\busername\x18\b \x01(\tR\busername\x12\x1d\n" +
+	"\n" +
+	"expires_at\x18\t \x01(\x03R\texpiresAt\"\x81\x02\n" +
+	"\aSession\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x1b\n" +
+	"\tdevice_id\x18\x02 \x01(\tR\bdeviceId\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x03 \x01(\x03R\tcreatedAt\x12$\n" +
+	"\x0elast_active_at\x18\x04 \x01(\x03R\flastActiveAt\x12\x1d\n" +
+	"\n" +
+	"is_current\x18\x05 \x01(\bR\tisCurrent\x12\x1f\n" +
+	"\vdevice_name\x18\x06 \x01(\tR\n" +
+	"deviceName\x12\x1a\n" +
+	"\blocation\x18\a \x01(\tR\blocation\x12\x19\n" +
+	"\bapp_name\x18\b \x01(\tR\aappName\"\x15\n" +
+	"\x13ListSessionsRequest\"\x99\x01\n" +
+	"\x14ListSessionsResponse\x12+\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x13.chat.RequestStatusR\x06status\x12)\n" +
+	"\x10response_message\x18\x02 \x01(\tR\x0fresponseMessage\x12)\n" +
+	"\bsessions\x18\x03 \x03(\v2\r.chat.SessionR\bsessions*\x81\x0e\n" +
 	"\rRequestStatus\x12\v\n" +
 	"\aSUCCESS\x10\x00\x12\x19\n" +
 	"\x15AUTHENTICATION_FAILED\x10\x01\x12\x11\n" +
@@ -10450,7 +11304,7 @@ const file_bot_proto_rawDesc = "" +
 	"LiveStatus\x12\x17\n" +
 	"\x13LIVE_STATUS_UNKNOWN\x10\x00\x12\x16\n" +
 	"\x12LIVE_STATUS_ON_AIR\x10\x01\x12\x15\n" +
-	"\x11LIVE_STATUS_ENDED\x10\x022\xc8\x16\n" +
+	"\x11LIVE_STATUS_ENDED\x10\x022\x97\x1a\n" +
 	"\fVagueService\x12P\n" +
 	"\x17ChatStreamMultipleEvent\x12\x13.chat.StreamRequest\x1a\x1c.chat.MultipleStreamResponse(\x010\x01\x12]\n" +
 	"\x14GetLastEventRevision\x12!.chat.GetLastEventRevisionRequest\x1a\".chat.GetLastEventRevisionResponse\x12Z\n" +
@@ -10493,7 +11347,12 @@ const file_bot_proto_rawDesc = "" +
 	"\x15FindGroupByInviteCode\x12\".chat.FindGroupByInviteCodeRequest\x1a#.chat.FindGroupByInviteCodeResponse\x12f\n" +
 	"\x17GetGroupWithDisplayName\x12$.chat.GetGroupWithDisplayNameRequest\x1a%.chat.GetGroupWithDisplayNameResponse\x12?\n" +
 	"\n" +
-	"LeaveGroup\x12\x17.chat.LeaveGroupRequest\x1a\x18.chat.LeaveGroupResponseB\x1aZ\x18vague-bot/proto;botprotob\x06proto3"
+	"LeaveGroup\x12\x17.chat.LeaveGroupRequest\x1a\x18.chat.LeaveGroupResponse\x12]\n" +
+	"\x14LoginSecondaryDevice\x12!.chat.LoginSecondaryDeviceRequest\x1a\".chat.LoginSecondaryDeviceResponse\x12`\n" +
+	"\x15CreateDeviceLoginLink\x12\".chat.CreateDeviceLoginLinkRequest\x1a#.chat.CreateDeviceLoginLinkResponse\x12i\n" +
+	"\x18GetDeviceLoginLinkStatus\x12%.chat.GetDeviceLoginLinkStatusRequest\x1a&.chat.GetDeviceLoginLinkStatusResponse\x12Z\n" +
+	"\x13PollDeviceLoginLink\x12 .chat.PollDeviceLoginLinkRequest\x1a!.chat.PollDeviceLoginLinkResponse\x12E\n" +
+	"\fListSessions\x12\x19.chat.ListSessionsRequest\x1a\x1a.chat.ListSessionsResponseB\x1aZ\x18vague-bot/proto;botprotob\x06proto3"
 
 var (
 	file_bot_proto_rawDescOnce sync.Once
@@ -10508,173 +11367,184 @@ func file_bot_proto_rawDescGZIP() []byte {
 }
 
 var file_bot_proto_enumTypes = make([]protoimpl.EnumInfo, 13)
-var file_bot_proto_msgTypes = make([]protoimpl.MessageInfo, 152)
+var file_bot_proto_msgTypes = make([]protoimpl.MessageInfo, 163)
 var file_bot_proto_goTypes = []any{
-	(RequestStatus)(0),                      // 0: chat.RequestStatus
-	(MessageType)(0),                        // 1: chat.MessageType
-	(ContentType)(0),                        // 2: chat.ContentType
-	(ContactStatus)(0),                      // 3: chat.ContactStatus
-	(UserType)(0),                           // 4: chat.UserType
-	(UserVerified)(0),                       // 5: chat.UserVerified
-	(Ranking)(0),                            // 6: chat.Ranking
-	(EventType)(0),                          // 7: chat.EventType
-	(LocationSource)(0),                     // 8: chat.LocationSource
-	(FeedPrivacy)(0),                        // 9: chat.FeedPrivacy
-	(CallAction)(0),                         // 10: chat.CallAction
-	(CallStateType)(0),                      // 11: chat.CallStateType
-	(LiveStatus)(0),                         // 12: chat.LiveStatus
-	(*UploadMediaRequest)(nil),              // 13: chat.UploadMediaRequest
-	(*UploadMediaResponse)(nil),             // 14: chat.UploadMediaResponse
-	(*Grade)(nil),                           // 15: chat.Grade
-	(*Contact)(nil),                         // 16: chat.Contact
-	(*GetContactsRequest)(nil),              // 17: chat.GetContactsRequest
-	(*GetContactsResponse)(nil),             // 18: chat.GetContactsResponse
-	(*UpdateContactRequest)(nil),            // 19: chat.UpdateContactRequest
-	(*UpdateContactResponse)(nil),           // 20: chat.UpdateContactResponse
-	(*GetBlockedUsersRequest)(nil),          // 21: chat.GetBlockedUsersRequest
-	(*GetBlockedUsersResponse)(nil),         // 22: chat.GetBlockedUsersResponse
-	(*Birthday)(nil),                        // 23: chat.Birthday
-	(*Profile)(nil),                         // 24: chat.Profile
-	(*GetProfileRequest)(nil),               // 25: chat.GetProfileRequest
-	(*GetProfileResponse)(nil),              // 26: chat.GetProfileResponse
-	(*UpdateProfileRequest)(nil),            // 27: chat.UpdateProfileRequest
-	(*UpdateProfileResponse)(nil),           // 28: chat.UpdateProfileResponse
-	(*GetLastEventRevisionRequest)(nil),     // 29: chat.GetLastEventRevisionRequest
-	(*GetLastEventRevisionResponse)(nil),    // 30: chat.GetLastEventRevisionResponse
-	(*GetLastViewRevisionRequest)(nil),      // 31: chat.GetLastViewRevisionRequest
-	(*GetLastViewRevisionResponse)(nil),     // 32: chat.GetLastViewRevisionResponse
-	(*CreateGroupRequest)(nil),              // 33: chat.CreateGroupRequest
-	(*GroupAdminPermissions)(nil),           // 34: chat.GroupAdminPermissions
-	(*Invitation)(nil),                      // 35: chat.Invitation
-	(*GroupExtra)(nil),                      // 36: chat.GroupExtra
-	(*Group)(nil),                           // 37: chat.Group
-	(*GroupEvent)(nil),                      // 38: chat.GroupEvent
-	(*CreateGroupResponse)(nil),             // 39: chat.CreateGroupResponse
-	(*RemoveMemberRequest)(nil),             // 40: chat.RemoveMemberRequest
-	(*RemoveMemberResponse)(nil),            // 41: chat.RemoveMemberResponse
-	(*InviteMemberRequest)(nil),             // 42: chat.InviteMemberRequest
-	(*InviteMemberResponse)(nil),            // 43: chat.InviteMemberResponse
-	(*RespondInvitationRequest)(nil),        // 44: chat.RespondInvitationRequest
-	(*RespondInvitationResponse)(nil),       // 45: chat.RespondInvitationResponse
-	(*CancelInvitationRequest)(nil),         // 46: chat.CancelInvitationRequest
-	(*CancelInvitationResponse)(nil),        // 47: chat.CancelInvitationResponse
-	(*LeaveGroupRequest)(nil),               // 48: chat.LeaveGroupRequest
-	(*LeaveGroupResponse)(nil),              // 49: chat.LeaveGroupResponse
-	(*GetGroupRequest)(nil),                 // 50: chat.GetGroupRequest
-	(*GetGroupResponse)(nil),                // 51: chat.GetGroupResponse
-	(*GetMyGroupsRequest)(nil),              // 52: chat.GetMyGroupsRequest
-	(*GetMyGroupsResponse)(nil),             // 53: chat.GetMyGroupsResponse
-	(*GetMyGroupInvitationsRequest)(nil),    // 54: chat.GetMyGroupInvitationsRequest
-	(*GetMyGroupInvitationsResponse)(nil),   // 55: chat.GetMyGroupInvitationsResponse
-	(*GenerateGroupUrlRequest)(nil),         // 56: chat.GenerateGroupUrlRequest
-	(*GenerateGroupUrlResponse)(nil),        // 57: chat.GenerateGroupUrlResponse
-	(*JoinGroupByUrlRequest)(nil),           // 58: chat.JoinGroupByUrlRequest
-	(*JoinGroupByUrlResponse)(nil),          // 59: chat.JoinGroupByUrlResponse
-	(*FindGroupByInviteCodeRequest)(nil),    // 60: chat.FindGroupByInviteCodeRequest
-	(*FindGroupByInviteCodeResponse)(nil),   // 61: chat.FindGroupByInviteCodeResponse
-	(*UpdateGroupRequest)(nil),              // 62: chat.UpdateGroupRequest
-	(*UpdateGroupResponse)(nil),             // 63: chat.UpdateGroupResponse
-	(*MemberDetail)(nil),                    // 64: chat.MemberDetail
-	(*InvitationDetail)(nil),                // 65: chat.InvitationDetail
-	(*GroupExtraName)(nil),                  // 66: chat.GroupExtraName
-	(*GroupWithDisplayName)(nil),            // 67: chat.GroupWithDisplayName
-	(*GetGroupWithDisplayNameRequest)(nil),  // 68: chat.GetGroupWithDisplayNameRequest
-	(*GetGroupWithDisplayNameResponse)(nil), // 69: chat.GetGroupWithDisplayNameResponse
-	(*RegisterPublicKeyRequest)(nil),        // 70: chat.RegisterPublicKeyRequest
-	(*RegisterPublicKeyResponse)(nil),       // 71: chat.RegisterPublicKeyResponse
-	(*GetPublicKeyRequest)(nil),             // 72: chat.GetPublicKeyRequest
-	(*GetPublicKeyResponse)(nil),            // 73: chat.GetPublicKeyResponse
-	(*E2EEPayload)(nil),                     // 74: chat.E2EEPayload
-	(*Message)(nil),                         // 75: chat.Message
-	(*OriginalSender)(nil),                  // 76: chat.OriginalSender
-	(*GetMessageRequest)(nil),               // 77: chat.GetMessageRequest
-	(*GetMessageResponse)(nil),              // 78: chat.GetMessageResponse
-	(*DeleteMessageRequest)(nil),            // 79: chat.DeleteMessageRequest
-	(*DeleteMessageResponse)(nil),           // 80: chat.DeleteMessageResponse
-	(*EditMessageRequest)(nil),              // 81: chat.EditMessageRequest
-	(*EditMessageResponse)(nil),             // 82: chat.EditMessageResponse
-	(*GetOriginMessageRequest)(nil),         // 83: chat.GetOriginMessageRequest
-	(*GetOriginMessageResponse)(nil),        // 84: chat.GetOriginMessageResponse
-	(*SendMessageRequest)(nil),              // 85: chat.SendMessageRequest
-	(*SendMessageResponse)(nil),             // 86: chat.SendMessageResponse
-	(*AddFriendRequest)(nil),                // 87: chat.AddFriendRequest
-	(*AddFriendResponse)(nil),               // 88: chat.AddFriendResponse
-	(*GetFriendsRequest)(nil),               // 89: chat.GetFriendsRequest
-	(*GetFriendsResponse)(nil),              // 90: chat.GetFriendsResponse
-	(*SearchUsersRequest)(nil),              // 91: chat.SearchUsersRequest
-	(*SearchUsersResponse)(nil),             // 92: chat.SearchUsersResponse
-	(*UpdateSettingsRequest)(nil),           // 93: chat.UpdateSettingsRequest
-	(*UpdateSettingsResponse)(nil),          // 94: chat.UpdateSettingsResponse
-	(*GetSettingsRequest)(nil),              // 95: chat.GetSettingsRequest
-	(*GetSettingsResponse)(nil),             // 96: chat.GetSettingsResponse
-	(*StreamEvent)(nil),                     // 97: chat.StreamEvent
-	(*StreamRequest)(nil),                   // 98: chat.StreamRequest
-	(*StreamResponse)(nil),                  // 99: chat.StreamResponse
-	(*MultipleStreamResponse)(nil),          // 100: chat.MultipleStreamResponse
-	(*ConnectRequest)(nil),                  // 101: chat.ConnectRequest
-	(*ConnectResponse)(nil),                 // 102: chat.ConnectResponse
-	(*PingRequest)(nil),                     // 103: chat.PingRequest
-	(*PongResponse)(nil),                    // 104: chat.PongResponse
-	(*BackupE2EEKeyRequest)(nil),            // 105: chat.BackupE2EEKeyRequest
-	(*BackupE2EEKeyResponse)(nil),           // 106: chat.BackupE2EEKeyResponse
-	(*RestoreE2EEKeyRequest)(nil),           // 107: chat.RestoreE2EEKeyRequest
-	(*RestoreE2EEKeyResponse)(nil),          // 108: chat.RestoreE2EEKeyResponse
-	(*OtherAuth)(nil),                       // 109: chat.OtherAuth
-	(*RepliedData)(nil),                     // 110: chat.RepliedData
-	(*Location)(nil),                        // 111: chat.Location
-	(*Reaction)(nil),                        // 112: chat.Reaction
-	(*Story)(nil),                           // 113: chat.Story
-	(*FeedReply)(nil),                       // 114: chat.FeedReply
-	(*Feed)(nil),                            // 115: chat.Feed
-	(*PollOption)(nil),                      // 116: chat.PollOption
-	(*Polling)(nil),                         // 117: chat.Polling
-	(*CopyrightEvent)(nil),                  // 118: chat.CopyrightEvent
-	(*GroupInviteEvent)(nil),                // 119: chat.GroupInviteEvent
-	(*CallEvent)(nil),                       // 120: chat.CallEvent
-	(*CallSignal)(nil),                      // 121: chat.CallSignal
-	(*CallStateUpdate)(nil),                 // 122: chat.CallStateUpdate
-	(*ReactionEvent)(nil),                   // 123: chat.ReactionEvent
-	(*ErrorEvent)(nil),                      // 124: chat.ErrorEvent
-	(*SyncEvent)(nil),                       // 125: chat.SyncEvent
-	(*UpdateSubscriptionsRequest)(nil),      // 126: chat.UpdateSubscriptionsRequest
-	(*UpdateSubscriptionsResponse)(nil),     // 127: chat.UpdateSubscriptionsResponse
-	(*LiveStream)(nil),                      // 128: chat.LiveStream
-	(*LiveGift)(nil),                        // 129: chat.LiveGift
-	(*LiveReaction)(nil),                    // 130: chat.LiveReaction
-	(*RefreshTokenRequest)(nil),             // 131: chat.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),            // 132: chat.RefreshTokenResponse
-	nil,                                     // 133: chat.UpdateContactRequest.AttributesEntry
-	nil,                                     // 134: chat.Profile.MetaProfileEntry
-	nil,                                     // 135: chat.UpdateProfileRequest.AttributeEntry
-	nil,                                     // 136: chat.UpdateProfileRequest.MetaEntry
-	nil,                                     // 137: chat.GroupExtra.MembersEntry
-	nil,                                     // 138: chat.GroupExtra.InvitationsEntry
-	nil,                                     // 139: chat.GroupExtra.MutedMembersEntry
-	nil,                                     // 140: chat.GroupExtra.AdminPermissionsEntry
-	nil,                                     // 141: chat.GroupExtra.MemberTagsEntry
-	nil,                                     // 142: chat.UpdateGroupRequest.AttributesEntry
-	nil,                                     // 143: chat.GroupExtraName.MembersEntry
-	nil,                                     // 144: chat.GroupExtraName.InvitationsEntry
-	nil,                                     // 145: chat.GroupExtraName.MutedMembersEntry
-	nil,                                     // 146: chat.GroupExtraName.AdminPermissionsEntry
-	nil,                                     // 147: chat.GroupExtraName.MemberTagsEntry
-	nil,                                     // 148: chat.Message.DeliveredEntry
-	nil,                                     // 149: chat.Message.ReadEntry
-	nil,                                     // 150: chat.Message.ContentMetadataEntry
-	nil,                                     // 151: chat.Message.ForwardedEntry
-	nil,                                     // 152: chat.Message.CopiedEntry
-	nil,                                     // 153: chat.UpdateSettingsRequest.SettingsEntry
-	nil,                                     // 154: chat.UpdateSettingsResponse.SettingsEntry
-	nil,                                     // 155: chat.GetSettingsResponse.SettingsEntry
-	nil,                                     // 156: chat.Story.ContentMetadataEntry
-	nil,                                     // 157: chat.FeedReply.ContentMetadataEntry
-	nil,                                     // 158: chat.Feed.ContentMetadataEntry
-	nil,                                     // 159: chat.Feed.SharedEntry
-	nil,                                     // 160: chat.Feed.ViewsEntry
-	nil,                                     // 161: chat.Feed.RepostEntry
-	nil,                                     // 162: chat.ErrorEvent.MetadataEntry
-	nil,                                     // 163: chat.LiveStream.CustomAttributesEntry
-	nil,                                     // 164: chat.LiveGift.MetadataEntry
+	(RequestStatus)(0),                       // 0: chat.RequestStatus
+	(MessageType)(0),                         // 1: chat.MessageType
+	(ContentType)(0),                         // 2: chat.ContentType
+	(ContactStatus)(0),                       // 3: chat.ContactStatus
+	(UserType)(0),                            // 4: chat.UserType
+	(UserVerified)(0),                        // 5: chat.UserVerified
+	(Ranking)(0),                             // 6: chat.Ranking
+	(EventType)(0),                           // 7: chat.EventType
+	(LocationSource)(0),                      // 8: chat.LocationSource
+	(FeedPrivacy)(0),                         // 9: chat.FeedPrivacy
+	(CallAction)(0),                          // 10: chat.CallAction
+	(CallStateType)(0),                       // 11: chat.CallStateType
+	(LiveStatus)(0),                          // 12: chat.LiveStatus
+	(*UploadMediaRequest)(nil),               // 13: chat.UploadMediaRequest
+	(*UploadMediaResponse)(nil),              // 14: chat.UploadMediaResponse
+	(*Grade)(nil),                            // 15: chat.Grade
+	(*Contact)(nil),                          // 16: chat.Contact
+	(*GetContactsRequest)(nil),               // 17: chat.GetContactsRequest
+	(*GetContactsResponse)(nil),              // 18: chat.GetContactsResponse
+	(*UpdateContactRequest)(nil),             // 19: chat.UpdateContactRequest
+	(*UpdateContactResponse)(nil),            // 20: chat.UpdateContactResponse
+	(*GetBlockedUsersRequest)(nil),           // 21: chat.GetBlockedUsersRequest
+	(*GetBlockedUsersResponse)(nil),          // 22: chat.GetBlockedUsersResponse
+	(*Birthday)(nil),                         // 23: chat.Birthday
+	(*Profile)(nil),                          // 24: chat.Profile
+	(*GetProfileRequest)(nil),                // 25: chat.GetProfileRequest
+	(*GetProfileResponse)(nil),               // 26: chat.GetProfileResponse
+	(*UpdateProfileRequest)(nil),             // 27: chat.UpdateProfileRequest
+	(*UpdateProfileResponse)(nil),            // 28: chat.UpdateProfileResponse
+	(*GetLastEventRevisionRequest)(nil),      // 29: chat.GetLastEventRevisionRequest
+	(*GetLastEventRevisionResponse)(nil),     // 30: chat.GetLastEventRevisionResponse
+	(*GetLastViewRevisionRequest)(nil),       // 31: chat.GetLastViewRevisionRequest
+	(*GetLastViewRevisionResponse)(nil),      // 32: chat.GetLastViewRevisionResponse
+	(*CreateGroupRequest)(nil),               // 33: chat.CreateGroupRequest
+	(*GroupAdminPermissions)(nil),            // 34: chat.GroupAdminPermissions
+	(*Invitation)(nil),                       // 35: chat.Invitation
+	(*GroupExtra)(nil),                       // 36: chat.GroupExtra
+	(*Group)(nil),                            // 37: chat.Group
+	(*GroupEvent)(nil),                       // 38: chat.GroupEvent
+	(*CreateGroupResponse)(nil),              // 39: chat.CreateGroupResponse
+	(*RemoveMemberRequest)(nil),              // 40: chat.RemoveMemberRequest
+	(*RemoveMemberResponse)(nil),             // 41: chat.RemoveMemberResponse
+	(*InviteMemberRequest)(nil),              // 42: chat.InviteMemberRequest
+	(*InviteMemberResponse)(nil),             // 43: chat.InviteMemberResponse
+	(*RespondInvitationRequest)(nil),         // 44: chat.RespondInvitationRequest
+	(*RespondInvitationResponse)(nil),        // 45: chat.RespondInvitationResponse
+	(*CancelInvitationRequest)(nil),          // 46: chat.CancelInvitationRequest
+	(*CancelInvitationResponse)(nil),         // 47: chat.CancelInvitationResponse
+	(*LeaveGroupRequest)(nil),                // 48: chat.LeaveGroupRequest
+	(*LeaveGroupResponse)(nil),               // 49: chat.LeaveGroupResponse
+	(*GetGroupRequest)(nil),                  // 50: chat.GetGroupRequest
+	(*GetGroupResponse)(nil),                 // 51: chat.GetGroupResponse
+	(*GetMyGroupsRequest)(nil),               // 52: chat.GetMyGroupsRequest
+	(*GetMyGroupsResponse)(nil),              // 53: chat.GetMyGroupsResponse
+	(*GetMyGroupInvitationsRequest)(nil),     // 54: chat.GetMyGroupInvitationsRequest
+	(*GetMyGroupInvitationsResponse)(nil),    // 55: chat.GetMyGroupInvitationsResponse
+	(*GenerateGroupUrlRequest)(nil),          // 56: chat.GenerateGroupUrlRequest
+	(*GenerateGroupUrlResponse)(nil),         // 57: chat.GenerateGroupUrlResponse
+	(*JoinGroupByUrlRequest)(nil),            // 58: chat.JoinGroupByUrlRequest
+	(*JoinGroupByUrlResponse)(nil),           // 59: chat.JoinGroupByUrlResponse
+	(*FindGroupByInviteCodeRequest)(nil),     // 60: chat.FindGroupByInviteCodeRequest
+	(*FindGroupByInviteCodeResponse)(nil),    // 61: chat.FindGroupByInviteCodeResponse
+	(*UpdateGroupRequest)(nil),               // 62: chat.UpdateGroupRequest
+	(*UpdateGroupResponse)(nil),              // 63: chat.UpdateGroupResponse
+	(*MemberDetail)(nil),                     // 64: chat.MemberDetail
+	(*InvitationDetail)(nil),                 // 65: chat.InvitationDetail
+	(*GroupExtraName)(nil),                   // 66: chat.GroupExtraName
+	(*GroupWithDisplayName)(nil),             // 67: chat.GroupWithDisplayName
+	(*GetGroupWithDisplayNameRequest)(nil),   // 68: chat.GetGroupWithDisplayNameRequest
+	(*GetGroupWithDisplayNameResponse)(nil),  // 69: chat.GetGroupWithDisplayNameResponse
+	(*RegisterPublicKeyRequest)(nil),         // 70: chat.RegisterPublicKeyRequest
+	(*RegisterPublicKeyResponse)(nil),        // 71: chat.RegisterPublicKeyResponse
+	(*GetPublicKeyRequest)(nil),              // 72: chat.GetPublicKeyRequest
+	(*GetPublicKeyResponse)(nil),             // 73: chat.GetPublicKeyResponse
+	(*E2EEPayload)(nil),                      // 74: chat.E2EEPayload
+	(*Message)(nil),                          // 75: chat.Message
+	(*OriginalSender)(nil),                   // 76: chat.OriginalSender
+	(*GetMessageRequest)(nil),                // 77: chat.GetMessageRequest
+	(*GetMessageResponse)(nil),               // 78: chat.GetMessageResponse
+	(*DeleteMessageRequest)(nil),             // 79: chat.DeleteMessageRequest
+	(*DeleteMessageResponse)(nil),            // 80: chat.DeleteMessageResponse
+	(*EditMessageRequest)(nil),               // 81: chat.EditMessageRequest
+	(*EditMessageResponse)(nil),              // 82: chat.EditMessageResponse
+	(*GetOriginMessageRequest)(nil),          // 83: chat.GetOriginMessageRequest
+	(*GetOriginMessageResponse)(nil),         // 84: chat.GetOriginMessageResponse
+	(*SendMessageRequest)(nil),               // 85: chat.SendMessageRequest
+	(*SendMessageResponse)(nil),              // 86: chat.SendMessageResponse
+	(*AddFriendRequest)(nil),                 // 87: chat.AddFriendRequest
+	(*AddFriendResponse)(nil),                // 88: chat.AddFriendResponse
+	(*GetFriendsRequest)(nil),                // 89: chat.GetFriendsRequest
+	(*GetFriendsResponse)(nil),               // 90: chat.GetFriendsResponse
+	(*SearchUsersRequest)(nil),               // 91: chat.SearchUsersRequest
+	(*SearchUsersResponse)(nil),              // 92: chat.SearchUsersResponse
+	(*UpdateSettingsRequest)(nil),            // 93: chat.UpdateSettingsRequest
+	(*UpdateSettingsResponse)(nil),           // 94: chat.UpdateSettingsResponse
+	(*GetSettingsRequest)(nil),               // 95: chat.GetSettingsRequest
+	(*GetSettingsResponse)(nil),              // 96: chat.GetSettingsResponse
+	(*StreamEvent)(nil),                      // 97: chat.StreamEvent
+	(*StreamRequest)(nil),                    // 98: chat.StreamRequest
+	(*StreamResponse)(nil),                   // 99: chat.StreamResponse
+	(*MultipleStreamResponse)(nil),           // 100: chat.MultipleStreamResponse
+	(*ConnectRequest)(nil),                   // 101: chat.ConnectRequest
+	(*ConnectResponse)(nil),                  // 102: chat.ConnectResponse
+	(*PingRequest)(nil),                      // 103: chat.PingRequest
+	(*PongResponse)(nil),                     // 104: chat.PongResponse
+	(*BackupE2EEKeyRequest)(nil),             // 105: chat.BackupE2EEKeyRequest
+	(*BackupE2EEKeyResponse)(nil),            // 106: chat.BackupE2EEKeyResponse
+	(*RestoreE2EEKeyRequest)(nil),            // 107: chat.RestoreE2EEKeyRequest
+	(*RestoreE2EEKeyResponse)(nil),           // 108: chat.RestoreE2EEKeyResponse
+	(*OtherAuth)(nil),                        // 109: chat.OtherAuth
+	(*RepliedData)(nil),                      // 110: chat.RepliedData
+	(*Location)(nil),                         // 111: chat.Location
+	(*Reaction)(nil),                         // 112: chat.Reaction
+	(*Story)(nil),                            // 113: chat.Story
+	(*FeedReply)(nil),                        // 114: chat.FeedReply
+	(*Feed)(nil),                             // 115: chat.Feed
+	(*PollOption)(nil),                       // 116: chat.PollOption
+	(*Polling)(nil),                          // 117: chat.Polling
+	(*CopyrightEvent)(nil),                   // 118: chat.CopyrightEvent
+	(*GroupInviteEvent)(nil),                 // 119: chat.GroupInviteEvent
+	(*CallEvent)(nil),                        // 120: chat.CallEvent
+	(*CallSignal)(nil),                       // 121: chat.CallSignal
+	(*CallStateUpdate)(nil),                  // 122: chat.CallStateUpdate
+	(*ReactionEvent)(nil),                    // 123: chat.ReactionEvent
+	(*ErrorEvent)(nil),                       // 124: chat.ErrorEvent
+	(*SyncEvent)(nil),                        // 125: chat.SyncEvent
+	(*UpdateSubscriptionsRequest)(nil),       // 126: chat.UpdateSubscriptionsRequest
+	(*UpdateSubscriptionsResponse)(nil),      // 127: chat.UpdateSubscriptionsResponse
+	(*LiveStream)(nil),                       // 128: chat.LiveStream
+	(*LiveGift)(nil),                         // 129: chat.LiveGift
+	(*LiveReaction)(nil),                     // 130: chat.LiveReaction
+	(*RefreshTokenRequest)(nil),              // 131: chat.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),             // 132: chat.RefreshTokenResponse
+	(*LoginSecondaryDeviceRequest)(nil),      // 133: chat.LoginSecondaryDeviceRequest
+	(*LoginSecondaryDeviceResponse)(nil),     // 134: chat.LoginSecondaryDeviceResponse
+	(*CreateDeviceLoginLinkRequest)(nil),     // 135: chat.CreateDeviceLoginLinkRequest
+	(*CreateDeviceLoginLinkResponse)(nil),    // 136: chat.CreateDeviceLoginLinkResponse
+	(*GetDeviceLoginLinkStatusRequest)(nil),  // 137: chat.GetDeviceLoginLinkStatusRequest
+	(*GetDeviceLoginLinkStatusResponse)(nil), // 138: chat.GetDeviceLoginLinkStatusResponse
+	(*PollDeviceLoginLinkRequest)(nil),       // 139: chat.PollDeviceLoginLinkRequest
+	(*PollDeviceLoginLinkResponse)(nil),      // 140: chat.PollDeviceLoginLinkResponse
+	(*Session)(nil),                          // 141: chat.Session
+	(*ListSessionsRequest)(nil),              // 142: chat.ListSessionsRequest
+	(*ListSessionsResponse)(nil),             // 143: chat.ListSessionsResponse
+	nil,                                      // 144: chat.UpdateContactRequest.AttributesEntry
+	nil,                                      // 145: chat.Profile.MetaProfileEntry
+	nil,                                      // 146: chat.UpdateProfileRequest.AttributeEntry
+	nil,                                      // 147: chat.UpdateProfileRequest.MetaEntry
+	nil,                                      // 148: chat.GroupExtra.MembersEntry
+	nil,                                      // 149: chat.GroupExtra.InvitationsEntry
+	nil,                                      // 150: chat.GroupExtra.MutedMembersEntry
+	nil,                                      // 151: chat.GroupExtra.AdminPermissionsEntry
+	nil,                                      // 152: chat.GroupExtra.MemberTagsEntry
+	nil,                                      // 153: chat.UpdateGroupRequest.AttributesEntry
+	nil,                                      // 154: chat.GroupExtraName.MembersEntry
+	nil,                                      // 155: chat.GroupExtraName.InvitationsEntry
+	nil,                                      // 156: chat.GroupExtraName.MutedMembersEntry
+	nil,                                      // 157: chat.GroupExtraName.AdminPermissionsEntry
+	nil,                                      // 158: chat.GroupExtraName.MemberTagsEntry
+	nil,                                      // 159: chat.Message.DeliveredEntry
+	nil,                                      // 160: chat.Message.ReadEntry
+	nil,                                      // 161: chat.Message.ContentMetadataEntry
+	nil,                                      // 162: chat.Message.ForwardedEntry
+	nil,                                      // 163: chat.Message.CopiedEntry
+	nil,                                      // 164: chat.UpdateSettingsRequest.SettingsEntry
+	nil,                                      // 165: chat.UpdateSettingsResponse.SettingsEntry
+	nil,                                      // 166: chat.GetSettingsResponse.SettingsEntry
+	nil,                                      // 167: chat.Story.ContentMetadataEntry
+	nil,                                      // 168: chat.FeedReply.ContentMetadataEntry
+	nil,                                      // 169: chat.Feed.ContentMetadataEntry
+	nil,                                      // 170: chat.Feed.SharedEntry
+	nil,                                      // 171: chat.Feed.ViewsEntry
+	nil,                                      // 172: chat.Feed.RepostEntry
+	nil,                                      // 173: chat.ErrorEvent.MetadataEntry
+	nil,                                      // 174: chat.LiveStream.CustomAttributesEntry
+	nil,                                      // 175: chat.LiveGift.MetadataEntry
 }
 var file_bot_proto_depIdxs = []int32{
 	0,   // 0: chat.UploadMediaResponse.status:type_name -> chat.RequestStatus
@@ -10685,11 +11555,11 @@ var file_bot_proto_depIdxs = []int32{
 	15,  // 5: chat.Contact.performance:type_name -> chat.Grade
 	0,   // 6: chat.GetContactsResponse.status:type_name -> chat.RequestStatus
 	16,  // 7: chat.GetContactsResponse.contacts:type_name -> chat.Contact
-	133, // 8: chat.UpdateContactRequest.attributes:type_name -> chat.UpdateContactRequest.AttributesEntry
+	144, // 8: chat.UpdateContactRequest.attributes:type_name -> chat.UpdateContactRequest.AttributesEntry
 	0,   // 9: chat.UpdateContactResponse.status:type_name -> chat.RequestStatus
 	0,   // 10: chat.GetBlockedUsersResponse.status:type_name -> chat.RequestStatus
 	16,  // 11: chat.GetBlockedUsersResponse.contacts:type_name -> chat.Contact
-	134, // 12: chat.Profile.meta_profile:type_name -> chat.Profile.MetaProfileEntry
+	145, // 12: chat.Profile.meta_profile:type_name -> chat.Profile.MetaProfileEntry
 	5,   // 13: chat.Profile.verified:type_name -> chat.UserVerified
 	23,  // 14: chat.Profile.birthday:type_name -> chat.Birthday
 	4,   // 15: chat.Profile.user_type:type_name -> chat.UserType
@@ -10697,17 +11567,17 @@ var file_bot_proto_depIdxs = []int32{
 	109, // 17: chat.Profile.auth_connect:type_name -> chat.OtherAuth
 	0,   // 18: chat.GetProfileResponse.status:type_name -> chat.RequestStatus
 	24,  // 19: chat.GetProfileResponse.profile:type_name -> chat.Profile
-	135, // 20: chat.UpdateProfileRequest.attribute:type_name -> chat.UpdateProfileRequest.AttributeEntry
-	136, // 21: chat.UpdateProfileRequest.meta:type_name -> chat.UpdateProfileRequest.MetaEntry
+	146, // 20: chat.UpdateProfileRequest.attribute:type_name -> chat.UpdateProfileRequest.AttributeEntry
+	147, // 21: chat.UpdateProfileRequest.meta:type_name -> chat.UpdateProfileRequest.MetaEntry
 	0,   // 22: chat.UpdateProfileResponse.status:type_name -> chat.RequestStatus
 	24,  // 23: chat.UpdateProfileResponse.profile:type_name -> chat.Profile
 	0,   // 24: chat.GetLastEventRevisionResponse.status:type_name -> chat.RequestStatus
 	0,   // 25: chat.GetLastViewRevisionResponse.status:type_name -> chat.RequestStatus
-	137, // 26: chat.GroupExtra.members:type_name -> chat.GroupExtra.MembersEntry
-	138, // 27: chat.GroupExtra.invitations:type_name -> chat.GroupExtra.InvitationsEntry
-	139, // 28: chat.GroupExtra.muted_members:type_name -> chat.GroupExtra.MutedMembersEntry
-	140, // 29: chat.GroupExtra.admin_permissions:type_name -> chat.GroupExtra.AdminPermissionsEntry
-	141, // 30: chat.GroupExtra.member_tags:type_name -> chat.GroupExtra.MemberTagsEntry
+	148, // 26: chat.GroupExtra.members:type_name -> chat.GroupExtra.MembersEntry
+	149, // 27: chat.GroupExtra.invitations:type_name -> chat.GroupExtra.InvitationsEntry
+	150, // 28: chat.GroupExtra.muted_members:type_name -> chat.GroupExtra.MutedMembersEntry
+	151, // 29: chat.GroupExtra.admin_permissions:type_name -> chat.GroupExtra.AdminPermissionsEntry
+	152, // 30: chat.GroupExtra.member_tags:type_name -> chat.GroupExtra.MemberTagsEntry
 	36,  // 31: chat.Group.extra:type_name -> chat.GroupExtra
 	37,  // 32: chat.GroupEvent.Group:type_name -> chat.Group
 	0,   // 33: chat.CreateGroupResponse.status:type_name -> chat.RequestStatus
@@ -10727,29 +11597,29 @@ var file_bot_proto_depIdxs = []int32{
 	0,   // 47: chat.JoinGroupByUrlResponse.status:type_name -> chat.RequestStatus
 	0,   // 48: chat.FindGroupByInviteCodeResponse.status:type_name -> chat.RequestStatus
 	37,  // 49: chat.FindGroupByInviteCodeResponse.group:type_name -> chat.Group
-	142, // 50: chat.UpdateGroupRequest.attributes:type_name -> chat.UpdateGroupRequest.AttributesEntry
+	153, // 50: chat.UpdateGroupRequest.attributes:type_name -> chat.UpdateGroupRequest.AttributesEntry
 	0,   // 51: chat.UpdateGroupResponse.status:type_name -> chat.RequestStatus
-	143, // 52: chat.GroupExtraName.members:type_name -> chat.GroupExtraName.MembersEntry
-	144, // 53: chat.GroupExtraName.invitations:type_name -> chat.GroupExtraName.InvitationsEntry
-	145, // 54: chat.GroupExtraName.muted_members:type_name -> chat.GroupExtraName.MutedMembersEntry
-	146, // 55: chat.GroupExtraName.admin_permissions:type_name -> chat.GroupExtraName.AdminPermissionsEntry
-	147, // 56: chat.GroupExtraName.member_tags:type_name -> chat.GroupExtraName.MemberTagsEntry
+	154, // 52: chat.GroupExtraName.members:type_name -> chat.GroupExtraName.MembersEntry
+	155, // 53: chat.GroupExtraName.invitations:type_name -> chat.GroupExtraName.InvitationsEntry
+	156, // 54: chat.GroupExtraName.muted_members:type_name -> chat.GroupExtraName.MutedMembersEntry
+	157, // 55: chat.GroupExtraName.admin_permissions:type_name -> chat.GroupExtraName.AdminPermissionsEntry
+	158, // 56: chat.GroupExtraName.member_tags:type_name -> chat.GroupExtraName.MemberTagsEntry
 	66,  // 57: chat.GroupWithDisplayName.extra:type_name -> chat.GroupExtraName
 	0,   // 58: chat.GetGroupWithDisplayNameResponse.status:type_name -> chat.RequestStatus
 	67,  // 59: chat.GetGroupWithDisplayNameResponse.group:type_name -> chat.GroupWithDisplayName
 	0,   // 60: chat.RegisterPublicKeyResponse.status:type_name -> chat.RequestStatus
 	0,   // 61: chat.GetPublicKeyResponse.status:type_name -> chat.RequestStatus
 	1,   // 62: chat.Message.message_type:type_name -> chat.MessageType
-	148, // 63: chat.Message.delivered:type_name -> chat.Message.DeliveredEntry
-	149, // 64: chat.Message.read:type_name -> chat.Message.ReadEntry
+	159, // 63: chat.Message.delivered:type_name -> chat.Message.DeliveredEntry
+	160, // 64: chat.Message.read:type_name -> chat.Message.ReadEntry
 	111, // 65: chat.Message.location:type_name -> chat.Location
 	2,   // 66: chat.Message.content_type:type_name -> chat.ContentType
-	150, // 67: chat.Message.content_metadata:type_name -> chat.Message.ContentMetadataEntry
+	161, // 67: chat.Message.content_metadata:type_name -> chat.Message.ContentMetadataEntry
 	74,  // 68: chat.Message.encrypted_data:type_name -> chat.E2EEPayload
 	112, // 69: chat.Message.reactions:type_name -> chat.Reaction
-	151, // 70: chat.Message.forwarded:type_name -> chat.Message.ForwardedEntry
+	162, // 70: chat.Message.forwarded:type_name -> chat.Message.ForwardedEntry
 	110, // 71: chat.Message.replied:type_name -> chat.RepliedData
-	152, // 72: chat.Message.copied:type_name -> chat.Message.CopiedEntry
+	163, // 72: chat.Message.copied:type_name -> chat.Message.CopiedEntry
 	76,  // 73: chat.Message.origin:type_name -> chat.OriginalSender
 	117, // 74: chat.Message.poll:type_name -> chat.Polling
 	75,  // 75: chat.OriginalSender.original_message:type_name -> chat.Message
@@ -10769,11 +11639,11 @@ var file_bot_proto_depIdxs = []int32{
 	16,  // 89: chat.GetFriendsResponse.contacts:type_name -> chat.Contact
 	0,   // 90: chat.SearchUsersResponse.status:type_name -> chat.RequestStatus
 	16,  // 91: chat.SearchUsersResponse.result:type_name -> chat.Contact
-	153, // 92: chat.UpdateSettingsRequest.settings:type_name -> chat.UpdateSettingsRequest.SettingsEntry
+	164, // 92: chat.UpdateSettingsRequest.settings:type_name -> chat.UpdateSettingsRequest.SettingsEntry
 	0,   // 93: chat.UpdateSettingsResponse.status:type_name -> chat.RequestStatus
-	154, // 94: chat.UpdateSettingsResponse.settings:type_name -> chat.UpdateSettingsResponse.SettingsEntry
+	165, // 94: chat.UpdateSettingsResponse.settings:type_name -> chat.UpdateSettingsResponse.SettingsEntry
 	0,   // 95: chat.GetSettingsResponse.status:type_name -> chat.RequestStatus
-	155, // 96: chat.GetSettingsResponse.settings:type_name -> chat.GetSettingsResponse.SettingsEntry
+	166, // 96: chat.GetSettingsResponse.settings:type_name -> chat.GetSettingsResponse.SettingsEntry
 	7,   // 97: chat.StreamEvent.event_type:type_name -> chat.EventType
 	37,  // 98: chat.StreamEvent.param1:type_name -> chat.Group
 	16,  // 99: chat.StreamEvent.param2:type_name -> chat.Contact
@@ -10809,115 +11679,131 @@ var file_bot_proto_depIdxs = []int32{
 	0,   // 129: chat.BackupE2EEKeyResponse.status:type_name -> chat.RequestStatus
 	0,   // 130: chat.RestoreE2EEKeyResponse.status:type_name -> chat.RequestStatus
 	8,   // 131: chat.Location.source:type_name -> chat.LocationSource
-	156, // 132: chat.Story.content_metadata:type_name -> chat.Story.ContentMetadataEntry
-	157, // 133: chat.FeedReply.content_metadata:type_name -> chat.FeedReply.ContentMetadataEntry
+	167, // 132: chat.Story.content_metadata:type_name -> chat.Story.ContentMetadataEntry
+	168, // 133: chat.FeedReply.content_metadata:type_name -> chat.FeedReply.ContentMetadataEntry
 	112, // 134: chat.FeedReply.reactions:type_name -> chat.Reaction
 	111, // 135: chat.Feed.location:type_name -> chat.Location
-	158, // 136: chat.Feed.content_metadata:type_name -> chat.Feed.ContentMetadataEntry
+	169, // 136: chat.Feed.content_metadata:type_name -> chat.Feed.ContentMetadataEntry
 	112, // 137: chat.Feed.reactions:type_name -> chat.Reaction
-	159, // 138: chat.Feed.shared:type_name -> chat.Feed.SharedEntry
+	170, // 138: chat.Feed.shared:type_name -> chat.Feed.SharedEntry
 	114, // 139: chat.Feed.replied:type_name -> chat.FeedReply
 	76,  // 140: chat.Feed.origin:type_name -> chat.OriginalSender
 	9,   // 141: chat.Feed.privacy:type_name -> chat.FeedPrivacy
 	117, // 142: chat.Feed.poll:type_name -> chat.Polling
-	160, // 143: chat.Feed.views:type_name -> chat.Feed.ViewsEntry
-	161, // 144: chat.Feed.repost:type_name -> chat.Feed.RepostEntry
+	171, // 143: chat.Feed.views:type_name -> chat.Feed.ViewsEntry
+	172, // 144: chat.Feed.repost:type_name -> chat.Feed.RepostEntry
 	116, // 145: chat.Polling.options:type_name -> chat.PollOption
 	16,  // 146: chat.GroupInviteEvent.target:type_name -> chat.Contact
 	10,  // 147: chat.CallSignal.action:type_name -> chat.CallAction
 	11,  // 148: chat.CallStateUpdate.state_type:type_name -> chat.CallStateType
-	162, // 149: chat.ErrorEvent.metadata:type_name -> chat.ErrorEvent.MetadataEntry
+	173, // 149: chat.ErrorEvent.metadata:type_name -> chat.ErrorEvent.MetadataEntry
 	0,   // 150: chat.UpdateSubscriptionsResponse.status:type_name -> chat.RequestStatus
-	163, // 151: chat.LiveStream.custom_attributes:type_name -> chat.LiveStream.CustomAttributesEntry
+	174, // 151: chat.LiveStream.custom_attributes:type_name -> chat.LiveStream.CustomAttributesEntry
 	12,  // 152: chat.LiveStream.status:type_name -> chat.LiveStatus
-	164, // 153: chat.LiveGift.metadata:type_name -> chat.LiveGift.MetadataEntry
+	175, // 153: chat.LiveGift.metadata:type_name -> chat.LiveGift.MetadataEntry
 	0,   // 154: chat.RefreshTokenResponse.status:type_name -> chat.RequestStatus
-	35,  // 155: chat.GroupExtra.InvitationsEntry.value:type_name -> chat.Invitation
-	34,  // 156: chat.GroupExtra.AdminPermissionsEntry.value:type_name -> chat.GroupAdminPermissions
-	64,  // 157: chat.GroupExtraName.MembersEntry.value:type_name -> chat.MemberDetail
-	65,  // 158: chat.GroupExtraName.InvitationsEntry.value:type_name -> chat.InvitationDetail
-	34,  // 159: chat.GroupExtraName.AdminPermissionsEntry.value:type_name -> chat.GroupAdminPermissions
-	98,  // 160: chat.VagueService.ChatStreamMultipleEvent:input_type -> chat.StreamRequest
-	29,  // 161: chat.VagueService.GetLastEventRevision:input_type -> chat.GetLastEventRevisionRequest
-	31,  // 162: chat.VagueService.GetLastViewRevision:input_type -> chat.GetLastViewRevisionRequest
-	70,  // 163: chat.VagueService.RegisterPublicKey:input_type -> chat.RegisterPublicKeyRequest
-	72,  // 164: chat.VagueService.GetPublicKey:input_type -> chat.GetPublicKeyRequest
-	85,  // 165: chat.VagueService.SendMessage:input_type -> chat.SendMessageRequest
-	77,  // 166: chat.VagueService.GetMessage:input_type -> chat.GetMessageRequest
-	79,  // 167: chat.VagueService.DeleteMessage:input_type -> chat.DeleteMessageRequest
-	131, // 168: chat.VagueService.RefreshToken:input_type -> chat.RefreshTokenRequest
-	81,  // 169: chat.VagueService.EditMessage:input_type -> chat.EditMessageRequest
-	83,  // 170: chat.VagueService.GetOriginMessage:input_type -> chat.GetOriginMessageRequest
-	13,  // 171: chat.VagueService.UploadMedia:input_type -> chat.UploadMediaRequest
-	105, // 172: chat.VagueService.BackupE2EEKey:input_type -> chat.BackupE2EEKeyRequest
-	107, // 173: chat.VagueService.RestoreE2EEKey:input_type -> chat.RestoreE2EEKeyRequest
-	93,  // 174: chat.VagueService.UpdateSettings:input_type -> chat.UpdateSettingsRequest
-	95,  // 175: chat.VagueService.GetSettings:input_type -> chat.GetSettingsRequest
-	25,  // 176: chat.VagueService.GetProfile:input_type -> chat.GetProfileRequest
-	27,  // 177: chat.VagueService.UpdateProfile:input_type -> chat.UpdateProfileRequest
-	91,  // 178: chat.VagueService.SearchUsers:input_type -> chat.SearchUsersRequest
-	87,  // 179: chat.VagueService.AddFriend:input_type -> chat.AddFriendRequest
-	89,  // 180: chat.VagueService.GetFriends:input_type -> chat.GetFriendsRequest
-	17,  // 181: chat.VagueService.GetContacts:input_type -> chat.GetContactsRequest
-	19,  // 182: chat.VagueService.UpdateContact:input_type -> chat.UpdateContactRequest
-	21,  // 183: chat.VagueService.GetBlockedUsers:input_type -> chat.GetBlockedUsersRequest
-	33,  // 184: chat.VagueService.CreateGroup:input_type -> chat.CreateGroupRequest
-	50,  // 185: chat.VagueService.GetGroup:input_type -> chat.GetGroupRequest
-	52,  // 186: chat.VagueService.GetMyGroups:input_type -> chat.GetMyGroupsRequest
-	62,  // 187: chat.VagueService.UpdateGroup:input_type -> chat.UpdateGroupRequest
-	42,  // 188: chat.VagueService.InviteMember:input_type -> chat.InviteMemberRequest
-	40,  // 189: chat.VagueService.RemoveMember:input_type -> chat.RemoveMemberRequest
-	44,  // 190: chat.VagueService.RespondInvitation:input_type -> chat.RespondInvitationRequest
-	46,  // 191: chat.VagueService.CancelInvitation:input_type -> chat.CancelInvitationRequest
-	54,  // 192: chat.VagueService.GetMyGroupInvitations:input_type -> chat.GetMyGroupInvitationsRequest
-	56,  // 193: chat.VagueService.GenerateGroupUrl:input_type -> chat.GenerateGroupUrlRequest
-	58,  // 194: chat.VagueService.JoinGroupByUrl:input_type -> chat.JoinGroupByUrlRequest
-	60,  // 195: chat.VagueService.FindGroupByInviteCode:input_type -> chat.FindGroupByInviteCodeRequest
-	68,  // 196: chat.VagueService.GetGroupWithDisplayName:input_type -> chat.GetGroupWithDisplayNameRequest
-	48,  // 197: chat.VagueService.LeaveGroup:input_type -> chat.LeaveGroupRequest
-	100, // 198: chat.VagueService.ChatStreamMultipleEvent:output_type -> chat.MultipleStreamResponse
-	30,  // 199: chat.VagueService.GetLastEventRevision:output_type -> chat.GetLastEventRevisionResponse
-	32,  // 200: chat.VagueService.GetLastViewRevision:output_type -> chat.GetLastViewRevisionResponse
-	71,  // 201: chat.VagueService.RegisterPublicKey:output_type -> chat.RegisterPublicKeyResponse
-	73,  // 202: chat.VagueService.GetPublicKey:output_type -> chat.GetPublicKeyResponse
-	86,  // 203: chat.VagueService.SendMessage:output_type -> chat.SendMessageResponse
-	78,  // 204: chat.VagueService.GetMessage:output_type -> chat.GetMessageResponse
-	80,  // 205: chat.VagueService.DeleteMessage:output_type -> chat.DeleteMessageResponse
-	132, // 206: chat.VagueService.RefreshToken:output_type -> chat.RefreshTokenResponse
-	82,  // 207: chat.VagueService.EditMessage:output_type -> chat.EditMessageResponse
-	84,  // 208: chat.VagueService.GetOriginMessage:output_type -> chat.GetOriginMessageResponse
-	14,  // 209: chat.VagueService.UploadMedia:output_type -> chat.UploadMediaResponse
-	106, // 210: chat.VagueService.BackupE2EEKey:output_type -> chat.BackupE2EEKeyResponse
-	108, // 211: chat.VagueService.RestoreE2EEKey:output_type -> chat.RestoreE2EEKeyResponse
-	94,  // 212: chat.VagueService.UpdateSettings:output_type -> chat.UpdateSettingsResponse
-	96,  // 213: chat.VagueService.GetSettings:output_type -> chat.GetSettingsResponse
-	26,  // 214: chat.VagueService.GetProfile:output_type -> chat.GetProfileResponse
-	28,  // 215: chat.VagueService.UpdateProfile:output_type -> chat.UpdateProfileResponse
-	92,  // 216: chat.VagueService.SearchUsers:output_type -> chat.SearchUsersResponse
-	88,  // 217: chat.VagueService.AddFriend:output_type -> chat.AddFriendResponse
-	90,  // 218: chat.VagueService.GetFriends:output_type -> chat.GetFriendsResponse
-	18,  // 219: chat.VagueService.GetContacts:output_type -> chat.GetContactsResponse
-	20,  // 220: chat.VagueService.UpdateContact:output_type -> chat.UpdateContactResponse
-	22,  // 221: chat.VagueService.GetBlockedUsers:output_type -> chat.GetBlockedUsersResponse
-	39,  // 222: chat.VagueService.CreateGroup:output_type -> chat.CreateGroupResponse
-	51,  // 223: chat.VagueService.GetGroup:output_type -> chat.GetGroupResponse
-	53,  // 224: chat.VagueService.GetMyGroups:output_type -> chat.GetMyGroupsResponse
-	63,  // 225: chat.VagueService.UpdateGroup:output_type -> chat.UpdateGroupResponse
-	43,  // 226: chat.VagueService.InviteMember:output_type -> chat.InviteMemberResponse
-	41,  // 227: chat.VagueService.RemoveMember:output_type -> chat.RemoveMemberResponse
-	45,  // 228: chat.VagueService.RespondInvitation:output_type -> chat.RespondInvitationResponse
-	47,  // 229: chat.VagueService.CancelInvitation:output_type -> chat.CancelInvitationResponse
-	55,  // 230: chat.VagueService.GetMyGroupInvitations:output_type -> chat.GetMyGroupInvitationsResponse
-	57,  // 231: chat.VagueService.GenerateGroupUrl:output_type -> chat.GenerateGroupUrlResponse
-	59,  // 232: chat.VagueService.JoinGroupByUrl:output_type -> chat.JoinGroupByUrlResponse
-	61,  // 233: chat.VagueService.FindGroupByInviteCode:output_type -> chat.FindGroupByInviteCodeResponse
-	69,  // 234: chat.VagueService.GetGroupWithDisplayName:output_type -> chat.GetGroupWithDisplayNameResponse
-	49,  // 235: chat.VagueService.LeaveGroup:output_type -> chat.LeaveGroupResponse
-	198, // [198:236] is the sub-list for method output_type
-	160, // [160:198] is the sub-list for method input_type
-	160, // [160:160] is the sub-list for extension type_name
-	160, // [160:160] is the sub-list for extension extendee
-	0,   // [0:160] is the sub-list for field type_name
+	0,   // 155: chat.LoginSecondaryDeviceResponse.status:type_name -> chat.RequestStatus
+	0,   // 156: chat.CreateDeviceLoginLinkResponse.status:type_name -> chat.RequestStatus
+	0,   // 157: chat.GetDeviceLoginLinkStatusResponse.status:type_name -> chat.RequestStatus
+	0,   // 158: chat.PollDeviceLoginLinkResponse.status:type_name -> chat.RequestStatus
+	0,   // 159: chat.ListSessionsResponse.status:type_name -> chat.RequestStatus
+	141, // 160: chat.ListSessionsResponse.sessions:type_name -> chat.Session
+	35,  // 161: chat.GroupExtra.InvitationsEntry.value:type_name -> chat.Invitation
+	34,  // 162: chat.GroupExtra.AdminPermissionsEntry.value:type_name -> chat.GroupAdminPermissions
+	64,  // 163: chat.GroupExtraName.MembersEntry.value:type_name -> chat.MemberDetail
+	65,  // 164: chat.GroupExtraName.InvitationsEntry.value:type_name -> chat.InvitationDetail
+	34,  // 165: chat.GroupExtraName.AdminPermissionsEntry.value:type_name -> chat.GroupAdminPermissions
+	98,  // 166: chat.VagueService.ChatStreamMultipleEvent:input_type -> chat.StreamRequest
+	29,  // 167: chat.VagueService.GetLastEventRevision:input_type -> chat.GetLastEventRevisionRequest
+	31,  // 168: chat.VagueService.GetLastViewRevision:input_type -> chat.GetLastViewRevisionRequest
+	70,  // 169: chat.VagueService.RegisterPublicKey:input_type -> chat.RegisterPublicKeyRequest
+	72,  // 170: chat.VagueService.GetPublicKey:input_type -> chat.GetPublicKeyRequest
+	85,  // 171: chat.VagueService.SendMessage:input_type -> chat.SendMessageRequest
+	77,  // 172: chat.VagueService.GetMessage:input_type -> chat.GetMessageRequest
+	79,  // 173: chat.VagueService.DeleteMessage:input_type -> chat.DeleteMessageRequest
+	131, // 174: chat.VagueService.RefreshToken:input_type -> chat.RefreshTokenRequest
+	81,  // 175: chat.VagueService.EditMessage:input_type -> chat.EditMessageRequest
+	83,  // 176: chat.VagueService.GetOriginMessage:input_type -> chat.GetOriginMessageRequest
+	13,  // 177: chat.VagueService.UploadMedia:input_type -> chat.UploadMediaRequest
+	105, // 178: chat.VagueService.BackupE2EEKey:input_type -> chat.BackupE2EEKeyRequest
+	107, // 179: chat.VagueService.RestoreE2EEKey:input_type -> chat.RestoreE2EEKeyRequest
+	93,  // 180: chat.VagueService.UpdateSettings:input_type -> chat.UpdateSettingsRequest
+	95,  // 181: chat.VagueService.GetSettings:input_type -> chat.GetSettingsRequest
+	25,  // 182: chat.VagueService.GetProfile:input_type -> chat.GetProfileRequest
+	27,  // 183: chat.VagueService.UpdateProfile:input_type -> chat.UpdateProfileRequest
+	91,  // 184: chat.VagueService.SearchUsers:input_type -> chat.SearchUsersRequest
+	87,  // 185: chat.VagueService.AddFriend:input_type -> chat.AddFriendRequest
+	89,  // 186: chat.VagueService.GetFriends:input_type -> chat.GetFriendsRequest
+	17,  // 187: chat.VagueService.GetContacts:input_type -> chat.GetContactsRequest
+	19,  // 188: chat.VagueService.UpdateContact:input_type -> chat.UpdateContactRequest
+	21,  // 189: chat.VagueService.GetBlockedUsers:input_type -> chat.GetBlockedUsersRequest
+	33,  // 190: chat.VagueService.CreateGroup:input_type -> chat.CreateGroupRequest
+	50,  // 191: chat.VagueService.GetGroup:input_type -> chat.GetGroupRequest
+	52,  // 192: chat.VagueService.GetMyGroups:input_type -> chat.GetMyGroupsRequest
+	62,  // 193: chat.VagueService.UpdateGroup:input_type -> chat.UpdateGroupRequest
+	42,  // 194: chat.VagueService.InviteMember:input_type -> chat.InviteMemberRequest
+	40,  // 195: chat.VagueService.RemoveMember:input_type -> chat.RemoveMemberRequest
+	44,  // 196: chat.VagueService.RespondInvitation:input_type -> chat.RespondInvitationRequest
+	46,  // 197: chat.VagueService.CancelInvitation:input_type -> chat.CancelInvitationRequest
+	54,  // 198: chat.VagueService.GetMyGroupInvitations:input_type -> chat.GetMyGroupInvitationsRequest
+	56,  // 199: chat.VagueService.GenerateGroupUrl:input_type -> chat.GenerateGroupUrlRequest
+	58,  // 200: chat.VagueService.JoinGroupByUrl:input_type -> chat.JoinGroupByUrlRequest
+	60,  // 201: chat.VagueService.FindGroupByInviteCode:input_type -> chat.FindGroupByInviteCodeRequest
+	68,  // 202: chat.VagueService.GetGroupWithDisplayName:input_type -> chat.GetGroupWithDisplayNameRequest
+	48,  // 203: chat.VagueService.LeaveGroup:input_type -> chat.LeaveGroupRequest
+	133, // 204: chat.VagueService.LoginSecondaryDevice:input_type -> chat.LoginSecondaryDeviceRequest
+	135, // 205: chat.VagueService.CreateDeviceLoginLink:input_type -> chat.CreateDeviceLoginLinkRequest
+	137, // 206: chat.VagueService.GetDeviceLoginLinkStatus:input_type -> chat.GetDeviceLoginLinkStatusRequest
+	139, // 207: chat.VagueService.PollDeviceLoginLink:input_type -> chat.PollDeviceLoginLinkRequest
+	142, // 208: chat.VagueService.ListSessions:input_type -> chat.ListSessionsRequest
+	100, // 209: chat.VagueService.ChatStreamMultipleEvent:output_type -> chat.MultipleStreamResponse
+	30,  // 210: chat.VagueService.GetLastEventRevision:output_type -> chat.GetLastEventRevisionResponse
+	32,  // 211: chat.VagueService.GetLastViewRevision:output_type -> chat.GetLastViewRevisionResponse
+	71,  // 212: chat.VagueService.RegisterPublicKey:output_type -> chat.RegisterPublicKeyResponse
+	73,  // 213: chat.VagueService.GetPublicKey:output_type -> chat.GetPublicKeyResponse
+	86,  // 214: chat.VagueService.SendMessage:output_type -> chat.SendMessageResponse
+	78,  // 215: chat.VagueService.GetMessage:output_type -> chat.GetMessageResponse
+	80,  // 216: chat.VagueService.DeleteMessage:output_type -> chat.DeleteMessageResponse
+	132, // 217: chat.VagueService.RefreshToken:output_type -> chat.RefreshTokenResponse
+	82,  // 218: chat.VagueService.EditMessage:output_type -> chat.EditMessageResponse
+	84,  // 219: chat.VagueService.GetOriginMessage:output_type -> chat.GetOriginMessageResponse
+	14,  // 220: chat.VagueService.UploadMedia:output_type -> chat.UploadMediaResponse
+	106, // 221: chat.VagueService.BackupE2EEKey:output_type -> chat.BackupE2EEKeyResponse
+	108, // 222: chat.VagueService.RestoreE2EEKey:output_type -> chat.RestoreE2EEKeyResponse
+	94,  // 223: chat.VagueService.UpdateSettings:output_type -> chat.UpdateSettingsResponse
+	96,  // 224: chat.VagueService.GetSettings:output_type -> chat.GetSettingsResponse
+	26,  // 225: chat.VagueService.GetProfile:output_type -> chat.GetProfileResponse
+	28,  // 226: chat.VagueService.UpdateProfile:output_type -> chat.UpdateProfileResponse
+	92,  // 227: chat.VagueService.SearchUsers:output_type -> chat.SearchUsersResponse
+	88,  // 228: chat.VagueService.AddFriend:output_type -> chat.AddFriendResponse
+	90,  // 229: chat.VagueService.GetFriends:output_type -> chat.GetFriendsResponse
+	18,  // 230: chat.VagueService.GetContacts:output_type -> chat.GetContactsResponse
+	20,  // 231: chat.VagueService.UpdateContact:output_type -> chat.UpdateContactResponse
+	22,  // 232: chat.VagueService.GetBlockedUsers:output_type -> chat.GetBlockedUsersResponse
+	39,  // 233: chat.VagueService.CreateGroup:output_type -> chat.CreateGroupResponse
+	51,  // 234: chat.VagueService.GetGroup:output_type -> chat.GetGroupResponse
+	53,  // 235: chat.VagueService.GetMyGroups:output_type -> chat.GetMyGroupsResponse
+	63,  // 236: chat.VagueService.UpdateGroup:output_type -> chat.UpdateGroupResponse
+	43,  // 237: chat.VagueService.InviteMember:output_type -> chat.InviteMemberResponse
+	41,  // 238: chat.VagueService.RemoveMember:output_type -> chat.RemoveMemberResponse
+	45,  // 239: chat.VagueService.RespondInvitation:output_type -> chat.RespondInvitationResponse
+	47,  // 240: chat.VagueService.CancelInvitation:output_type -> chat.CancelInvitationResponse
+	55,  // 241: chat.VagueService.GetMyGroupInvitations:output_type -> chat.GetMyGroupInvitationsResponse
+	57,  // 242: chat.VagueService.GenerateGroupUrl:output_type -> chat.GenerateGroupUrlResponse
+	59,  // 243: chat.VagueService.JoinGroupByUrl:output_type -> chat.JoinGroupByUrlResponse
+	61,  // 244: chat.VagueService.FindGroupByInviteCode:output_type -> chat.FindGroupByInviteCodeResponse
+	69,  // 245: chat.VagueService.GetGroupWithDisplayName:output_type -> chat.GetGroupWithDisplayNameResponse
+	49,  // 246: chat.VagueService.LeaveGroup:output_type -> chat.LeaveGroupResponse
+	134, // 247: chat.VagueService.LoginSecondaryDevice:output_type -> chat.LoginSecondaryDeviceResponse
+	136, // 248: chat.VagueService.CreateDeviceLoginLink:output_type -> chat.CreateDeviceLoginLinkResponse
+	138, // 249: chat.VagueService.GetDeviceLoginLinkStatus:output_type -> chat.GetDeviceLoginLinkStatusResponse
+	140, // 250: chat.VagueService.PollDeviceLoginLink:output_type -> chat.PollDeviceLoginLinkResponse
+	143, // 251: chat.VagueService.ListSessions:output_type -> chat.ListSessionsResponse
+	209, // [209:252] is the sub-list for method output_type
+	166, // [166:209] is the sub-list for method input_type
+	166, // [166:166] is the sub-list for extension type_name
+	166, // [166:166] is the sub-list for extension extendee
+	0,   // [0:166] is the sub-list for field type_name
 }
 
 func init() { file_bot_proto_init() }
@@ -10963,7 +11849,7 @@ func file_bot_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_bot_proto_rawDesc), len(file_bot_proto_rawDesc)),
 			NumEnums:      13,
-			NumMessages:   152,
+			NumMessages:   163,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
