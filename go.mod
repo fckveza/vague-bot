@@ -3,15 +3,14 @@ module vague-bot
 go 1.22.2
 
 require (
+	github.com/mdp/qrterminal/v3 v3.2.1
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	golang.org/x/crypto v0.24.0
 	google.golang.org/grpc v1.64.1
 	google.golang.org/protobuf v1.34.2
 )
 
 require (
-	github.com/liyue201/goqr v0.0.0-20200803022322-df443203d4ea // indirect
-	github.com/mdp/qrterminal/v3 v3.2.1 // indirect
-	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sys v0.29.0 // indirect
 	golang.org/x/term v0.21.0 // indirect

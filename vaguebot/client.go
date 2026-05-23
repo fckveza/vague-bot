@@ -11,6 +11,7 @@ import (
 	"mime"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -25,6 +26,14 @@ import (
 )
 
 var Selfbot = true
+
+var VagueClients = []*Client{}
+var Squad = []string{}
+var Blacklist = []string{}
+var Mclient = map[string]*Client{}
+var Protected = []string{}
+
+const maxFlexPayloadBytes = 32 * 1024
 
 type PersistAccountFunc func(AccountRecord) error
 
@@ -106,6 +115,8 @@ type Client struct {
 	recipientPK     map[string][]byte
 	groupPK         map[string][]byte
 	lastE2EEReg     time.Time
+
+	Action []string
 }
 
 func SetPeerClients(clients []*Client) {
@@ -827,6 +838,120 @@ func (c *Client) SendMessage(ctx context.Context, to, text string) error {
 	return c.sendPreparedMessage(ctx, to, text, pb.ContentType_NONE, nil)
 }
 
+func (c *Client) SendFlexMessage(ctx context.Context, to, flexJSON, altText string) error {
+	normalizedFlexJSON, err := normalizeFlexJSONPayload(flexJSON)
+	if err != nil {
+		return err
+	}
+
+	normalizedAltText := strings.TrimSpace(altText)
+	if normalizedAltText == "" {
+		normalizedAltText = "Flex message"
+	}
+
+	return c.sendPreparedMessage(
+		ctx,
+		to,
+		"",
+		pb.ContentType_FLEX,
+		map[string]string{
+			"vflex_json":    normalizedFlexJSON,
+			"flex_json":     normalizedFlexJSON,
+			"flex_alt_text": normalizedAltText,
+		},
+	)
+}
+
+func normalizeFlexJSONPayload(raw string) (string, error) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return "", errors.New("flex json is required")
+	}
+
+	var doc map[string]any
+	if err := json.Unmarshal([]byte(trimmed), &doc); err != nil {
+		return "", errors.New("flex json is not valid")
+	}
+
+	if strings.TrimSpace(strings.ToLower(asAnyString(doc["type"]))) != "vflex" {
+		return "", errors.New("flex json `type` must be `vflex`")
+	}
+
+	version, ok := parseVFlexVersion(doc["version"])
+	if !ok {
+		return "", errors.New("flex json `version` must be integer 2")
+	}
+	if version != 2 {
+		return "", fmt.Errorf("flex json version %d is not supported (use 2)", version)
+	}
+
+	body, ok := doc["body"].(map[string]any)
+	if !ok || len(body) == 0 {
+		return "", errors.New("flex json `body` must be object")
+	}
+	if strings.TrimSpace(strings.ToLower(asAnyString(body["type"]))) != "box" {
+		return "", errors.New("flex json `body.type` must be `box`")
+	}
+
+	meta := map[string]any{}
+	if existing, ok := doc["meta"].(map[string]any); ok && existing != nil {
+		meta = existing
+	}
+	if strings.TrimSpace(asAnyString(meta["safeArea"])) == "" {
+		meta["safeArea"] = "true"
+	}
+	if strings.TrimSpace(asAnyString(meta["maxHeightRatio"])) == "" {
+		meta["maxHeightRatio"] = "0.88"
+	}
+	doc["meta"] = meta
+
+	compacted, err := json.Marshal(doc)
+	if err != nil {
+		return "", errors.New("flex json is not valid")
+	}
+	if len(compacted) > maxFlexPayloadBytes {
+		return "", fmt.Errorf("flex json too large: %d bytes (max %d)", len(compacted), maxFlexPayloadBytes)
+	}
+	return string(compacted), nil
+}
+
+func parseVFlexVersion(raw any) (int, bool) {
+	switch value := raw.(type) {
+	case int:
+		return value, true
+	case int32:
+		return int(value), true
+	case int64:
+		return int(value), true
+	case float64:
+		asInt := int(value)
+		if float64(asInt) != value {
+			return 0, false
+		}
+		return asInt, true
+	case string:
+		parsed, err := strconv.Atoi(strings.TrimSpace(value))
+		if err != nil {
+			return 0, false
+		}
+		return parsed, true
+	default:
+		return 0, false
+	}
+}
+
+func asAnyString(raw any) string {
+	if raw == nil {
+		return ""
+	}
+	switch value := raw.(type) {
+	case string:
+		return value
+	default:
+		return fmt.Sprintf("%v", value)
+	}
+}
+
 func (c *Client) sendPreparedMessage(ctx context.Context, to, text string, contentType pb.ContentType, extraMetadata map[string]string) error {
 	to = strings.TrimSpace(to)
 	if to == "" {
@@ -1200,6 +1325,14 @@ func (c *Client) GetGroup(ctx context.Context, groupID string) (*pb.Group, error
 	return resp.GetGroup(), nil
 }
 
+func (cl *Client) GetChatCustom(to string) (qr bool, memb map[string]int64, pend map[string]*pb.Invitation) {
+	res, err := cl.GetGroup(context.TODO(), to)
+	if err != nil {
+		return qr, memb, pend
+	}
+	return res.Extra.JoinByTicket, res.Extra.Members, res.Extra.Invitations
+}
+
 func (c *Client) GetMyGroups(ctx context.Context) ([]*pb.Group, error) {
 	callCtx, cancel := c.unaryContext(ctx)
 	defer cancel()
@@ -1420,6 +1553,29 @@ func parseListArgs(args []string) []string {
 		}
 	}
 	return out
+}
+
+func parseFlexCommandArgs(raw string) (altText string, flexJSON string, err error) {
+	normalized := strings.TrimSpace(raw)
+	if normalized == "" {
+		return "", "", errors.New("usage flex <json> OR flex <alt_text> | <json>")
+	}
+
+	if strings.HasPrefix(normalized, "{") || strings.HasPrefix(normalized, "[") {
+		return "", normalized, nil
+	}
+
+	parts := strings.SplitN(normalized, "|", 2)
+	if len(parts) != 2 {
+		return "", "", errors.New("usage flex <json> OR flex <alt_text> | <json>")
+	}
+
+	altText = strings.TrimSpace(parts[0])
+	flexJSON = strings.TrimSpace(parts[1])
+	if flexJSON == "" {
+		return "", "", errors.New("flex json is required")
+	}
+	return altText, flexJSON, nil
 }
 
 func parseCreateGroupArgs(raw string) (string, []string, error) {

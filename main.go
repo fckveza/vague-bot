@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	vaguebot.Selfbot = true
+	vaguebot.Selfbot = false
 	var clients []*vaguebot.Client
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -125,20 +125,36 @@ func main() {
 
 func runClientLoop(ctx context.Context, client *vaguebot.Client) {
 	backoff := 2 * time.Second
+	cycle := 0
 
 	for {
 		select {
 		case <-ctx.Done():
+			log.Printf("[%s] stream loop stop: context canceled", client.CurrentCID())
 			return
 		default:
 		}
 
+		cycle++
+		log.Printf(
+			"[%s] stream cycle start cycle=%d revision=%d backoff=%s",
+			client.CurrentCID(),
+			cycle,
+			client.Revision,
+			backoff,
+		)
 		err := client.ChatStreamMultiEvent(ctx)
 		if err == nil {
+			log.Printf(
+				"[%s] stream cycle end clean cycle=%d (EOF/normal close), reconnect immediately",
+				client.CurrentCID(),
+				cycle,
+			)
 			backoff = 2 * time.Second
 			continue
 		}
 		if ctx.Err() != nil || errors.Is(err, context.Canceled) {
+			log.Printf("[%s] stream cycle canceled cycle=%d err=%v", client.CurrentCID(), cycle, err)
 			return
 		}
 		if status.Code(err) == codes.Unauthenticated {
@@ -146,7 +162,14 @@ func runClientLoop(ctx context.Context, client *vaguebot.Client) {
 			return
 		}
 
-		log.Printf("[%s] stream error: %v (retry in %s)", client.CurrentCID(), err, backoff)
+		log.Printf(
+			"[%s] stream error cycle=%d code=%s err=%v (retry in %s)",
+			client.CurrentCID(),
+			cycle,
+			status.Code(err),
+			err,
+			backoff,
+		)
 		_ = client.PersistState()
 
 		timer := time.NewTimer(backoff)

@@ -88,6 +88,65 @@ The bot will:
 
 Press `Ctrl+C` to gracefully shutdown.
 
+## Send Flex (VFlex)
+
+Bot sekarang mendukung command `flex` untuk kirim pesan `ContentType.FLEX`.
+Format yang didukung: `vflex` dengan `version: 2`.
+
+Tanpa argumen, bot akan kirim template default:
+
+```text
+flex
+```
+
+Contoh kirim langsung (target chat saat ini):
+
+```text
+flex {"type":"vflex","version":2,"meta":{"safeArea":"true","maxHeightRatio":"0.88"},"altText":"Promo","body":{"type":"box","direction":"column","padding":12,"spacing":8,"children":[{"type":"text","text":"Diskon 50%","weight":"bold","size":16},{"type":"text","text":"Berlaku sampai Minggu"}]}}
+```
+
+Contoh dengan alt text custom:
+
+```text
+flex Promo Hari Ini | {"type":"vflex","version":2,"meta":{"safeArea":"true","maxHeightRatio":"0.88"},"body":{"type":"box","direction":"column","children":[{"type":"text","text":"Halo Flex"}]}}
+```
+
+Contoh cepat carousel template:
+
+```text
+flexcarousel
+```
+
+Demo template lain:
+
+```text
+flexstack
+flexshop
+flexmenu
+flexnews
+flexevent
+flexcopy
+flexprofile
+```
+
+Command profile flex (adaptasi dari konsep "me"):
+
+```text
+me
+```
+
+Atau target CID tertentu:
+
+```text
+me c1234567890
+```
+
+Catatan URL:
+- Bot akan pakai URL `picture_profile` / `cover_picture_profile` dari data Vague.
+- Jika URL masih relatif, bot otomatis normalisasi ke base URL publik.
+- Default base URL diambil dari host `VAGUE_BOT_GRPC_TARGET`.
+- Bisa override dengan env `VAGUE_BOT_PUBLIC_BASE_URL`.
+
 ## Project Structure
 
 ```
