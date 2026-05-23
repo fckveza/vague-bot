@@ -221,41 +221,19 @@ func (c *Client) ChatStreamMultiEvent(ctx context.Context) error {
 					eventLog("[%s] received self invite event: %v", c.CurrentCID(), event)
 
 				case pb.EventType_EVENT_MEMBER_INVITED:
-					if Selfbot {
-						continue
+					to, pelaku := event.Param1.GroupId, event.Param2.Cid
+					invitesCon := event.GetGroupInvite().Target
+					invites := []string{}
+					for _, con := range invitesCon {
+						invites = append(invites, con.Cid)
 					}
-					go func(op *pb.StreamEvent) {
-						to, pelaku := op.Param1.GroupId, op.Param2.Cid
-						invitesCon := op.GetGroupInvite().Target
-						invites := []string{}
-						for _, con := range invitesCon {
-							invites = append(invites, con.Cid)
-						}
-						if Contains(invites, c.CurrentCID()) {
-							c.RespondInvitation(ctx, to, true)
-
-						} else {
-							room := GetRoom(to)
-							if cekSquad(op) {
-								if IsBan(pelaku) {
-									for _, target := range invites {
-										go c.CancelInvitation(ctx, to, target)
-									}
-									go c.RemoveMember(ctx, to, pelaku)
-									banAll(invites, room)
-								} else if IsBanArray(invites) {
-									for _, target := range invites {
-										go c.CancelInvitation(ctx, to, target)
-
-									}
-									if !Contains(Squad, pelaku) {
-										go c.RemoveMember(ctx, to, pelaku)
-										AddBan(pelaku, room)
-									}
-								}
-							}
-						}
-					}(event)
+					log.Printf("[%s] MEMBER_INVITED to=%s from=%s invites=%v myCID=%s", c.CurrentCID(), to, pelaku, invites, c.CurrentCID())
+					if Contains(invites, c.CurrentCID()) {
+						log.Printf("[%s] Accepting invite to group %s", c.CurrentCID(), to)
+						c.RespondInvitation(ctx, to, true)
+						eventLog("[%s] auto accepted member invite to group %s from %s", c.CurrentCID(), to, pelaku)
+					}
+					eventLog("[%s] received member invite event: %v", c.CurrentCID(), event)
 
 				case pb.EventType_EVENT_MEMBER_REMOVED:
 					if Selfbot {
@@ -336,15 +314,7 @@ func (c *Client) ChatStreamMultiEvent(ctx context.Context) error {
 					if Selfbot {
 						continue
 					}
-					if !cekSquad(event) {
-						continue
-					}
-
 					message := event.GetMessage()
-					if !Contains(Protected, message.GetMessageTo()) && message.GetMessageType() == 2 {
-						c.GetSquad(message.GetMessageTo())
-						Protected = append(Protected, message.GetMessageTo())
-					}
 					plainText, err := c.decryptMessageText(ctx, message)
 					if err != nil {
 						eventLog("[%s] failed to decrypt message %s: %v", c.CurrentCID(), message.GetMessageId(), err)

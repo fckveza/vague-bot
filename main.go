@@ -103,6 +103,12 @@ func main() {
 
 	vaguebot.SetPeerClients(clients)
 
+	// Add all clients to Squad and Mclient
+	for _, client := range clients {
+		vaguebot.Squad = append(vaguebot.Squad, client.CID)
+		vaguebot.Mclient[client.CID] = client
+	}
+
 	var wg sync.WaitGroup
 	for _, client := range clients {
 		client := client
