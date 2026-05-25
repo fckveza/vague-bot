@@ -17,23 +17,69 @@ import (
 )
 
 func main() {
-	vaguebot.Selfbot = false
+	vaguebot.Selfbot = true
 	var clients []*vaguebot.Client
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	if vaguebot.Selfbot {
-		client, _ := vaguebot.SelfbotLogin()
-		if client == nil {
-			log.Fatalf("selfbot login failed")
-		}
-		clients = []*vaguebot.Client{client}
-		log.Printf("running selfbot client on device login")
-		ress, err := client.GetLastEventRevision(ctx)
+		cfg := vaguebot.LoadConfig()
+		store, err := vaguebot.NewAccountStore(cfg.AccountFile)
 		if err != nil {
-			log.Panicf("failed to get last event revision for cid=%s: %v", client.CID, err)
+			log.Fatalf("failed init account store: %v", err)
+		}
+
+		accounts := store.AccountsSelfbot()
+		log.Printf("Selfbot: found %d saved accounts", len(accounts))
+		if len(accounts) > 0 {
+			// Use existing selfbot account
+			account := accounts[0]
+			log.Printf("Selfbot: trying saved account cid=%s token_len=%d", account.CID, len(account.Token))
+			client, err := vaguebot.CreateClient(ctx, account, cfg, store.Upsert)
+			if err != nil {
+				log.Printf("failed to create client from saved account: %v", err)
+				log.Println("Trying fresh login...")
+				client = nil
+			} else {
+				profile, err := client.GetProfile(ctx)
+				if err != nil {
+					log.Printf("GetProfile failed, trying refresh: %v", err)
+					res, err := client.RefreshAuthToken(ctx, client.RefreshToken)
+					if err != nil {
+						log.Printf("failed to refresh auth token: %v", err)
+						log.Println("Trying fresh login...")
+						_ = client.Close()
+						client = nil
+					} else {
+						client.Token = res.GetToken()
+						client.RefreshToken = res.GetRefreshToken()
+						log.Printf("refreshed auth token for cid=%s", client.CID)
+					}
+				}
+				if profile != nil {
+					log.Printf("Loaded saved selfbot account: cid=%s display_name=%s", profile.GetCid(), profile.GetDisplayName())
+				}
+			}
+			if client != nil {
+				clients = []*vaguebot.Client{client}
+			}
+		}
+
+		if len(clients) == 0 {
+			// No saved account or login failed - do fresh QR login
+			log.Println("Selfbot: No valid saved account, showing QR code...")
+			client, err := vaguebot.SelfbotLogin()
+			if err != nil || client == nil {
+				log.Fatalf("selfbot login failed")
+			}
+			clients = []*vaguebot.Client{client}
+			log.Printf("running selfbot client on device login")
+		}
+		ress, err := clients[0].GetLastEventRevision(ctx)
+		if err != nil {
+			log.Panicf("failed to get last event revision for cid=%s: %v", clients[0].CID, err)
 		} else {
-			client.Revision = ress.GetCurrentRevision()
-			log.Println(client.Revision)
+			clients[0].Revision = ress.GetCurrentRevision()
+			log.Println(clients[0].Revision)
 		}
 	} else {
 		cfg := vaguebot.LoadConfig()

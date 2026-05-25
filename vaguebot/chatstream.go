@@ -442,6 +442,16 @@ const defaultVFlexMenuDemoJSON = `{
         {"type":"box","direction":"column","flex":1,"padding":10,"spacing":6,"backgroundColor":"#1E293B","borderRadius":10,"action":{"type":"deep_link","url":"vague://wallet"},"children":[{"type":"icon","name":"cart","size":22,"color":"#86EFAC"},{"type":"text","text":"Wallet","size":12,"color":"#E2E8F0"}]},
         {"type":"box","direction":"column","flex":1,"padding":10,"spacing":6,"backgroundColor":"#1E293B","borderRadius":10,"action":{"type":"deep_link","url":"vague://calendar"},"children":[{"type":"icon","name":"calendar","size":22,"color":"#FDE68A"},{"type":"text","text":"Events","size":12,"color":"#E2E8F0"}]},
         {"type":"box","direction":"column","flex":1,"padding":10,"spacing":6,"backgroundColor":"#1E293B","borderRadius":10,"action":{"type":"deep_link","url":"vague://settings"},"children":[{"type":"icon","name":"settings","size":22,"color":"#FCA5A5"},{"type":"text","text":"Settings","size":12,"color":"#E2E8F0"}]}
+      ]},
+      {"type":"box","direction":"row","spacing":10,"children":[
+        {"type":"box","direction":"column","flex":1,"padding":10,"spacing":6,"backgroundColor":"#1E293B","borderRadius":10,"action":{"type":"deep_link","url":"vague://profile"},"children":[{"type":"icon","name":"person","size":22,"color":"#A7F3D0"},{"type":"text","text":"Profile","size":12,"color":"#E2E8F0"}]},
+        {"type":"box","direction":"column","flex":1,"padding":10,"spacing":6,"backgroundColor":"#1E293B","borderRadius":10,"action":{"type":"deep_link","url":"vague://orders"},"children":[{"type":"icon","name":"list","size":22,"color":"#BFDBFE"},{"type":"text","text":"Orders","size":12,"color":"#E2E8F0"}]},
+        {"type":"box","direction":"column","flex":1,"padding":10,"spacing":6,"backgroundColor":"#1E293B","borderRadius":10,"action":{"type":"deep_link","url":"vague://explore"},"children":[{"type":"icon","name":"compass","size":22,"color":"#FBCFE8"},{"type":"text","text":"Explore","size":12,"color":"#E2E8F0"}]}
+      ]},
+      {"type":"box","direction":"row","spacing":10,"children":[
+        {"type":"box","direction":"column","flex":1,"padding":10,"spacing":6,"backgroundColor":"#1E293B","borderRadius":10,"action":{"type":"deep_link","url":"vague://help"},"children":[{"type":"icon","name":"help","size":22,"color":"#FCD34D"},{"type":"text","text":"Help","size":12,"color":"#E2E8F0"}]},
+        {"type":"box","direction":"column","flex":1,"padding":10,"spacing":6,"backgroundColor":"#1E293B","borderRadius":10,"action":{"type":"deep_link","url":"vague://rewards"},"children":[{"type":"icon","name":"gift","size":22,"color":"#C4B5FD"},{"type":"text","text":"Rewards","size":12,"color":"#E2E8F0"}]},
+        {"type":"box","direction":"column","flex":1,"padding":10,"spacing":6,"backgroundColor":"#1E293B","borderRadius":10,"action":{"type":"deep_link","url":"vague://call"},"children":[{"type":"icon","name":"call","size":22,"color":"#93C5FD"},{"type":"text","text":"Calls","size":12,"color":"#E2E8F0"}]}
       ]}
     ]
   }
@@ -537,6 +547,64 @@ const defaultVFlexProfileDemoJSON = `{
       ]},
       {"type":"button","label":"Follow","backgroundColor":"#2563EB","textColor":"#FFFFFF","borderRadius":10,"action":{"type":"deep_link","url":"vague://profile/follow"}},
       {"type":"button","label":"Kirim Pesan","backgroundColor":"#0EA5E9","textColor":"#FFFFFF","borderRadius":10,"action":{"type":"deep_link","url":"vague://chat/new"}}
+    ]
+  }
+}`
+const defaultVFlexComplexDemoJSON = `{
+  "type":"vflex",
+  "version":2,
+  "meta":{"safeArea":"true","maxHeightRatio":"0.88"},
+  "altText":"VFlex Complex Demo",
+  "body":{
+    "type":"box",
+    "direction":"column",
+    "padding":12,
+    "spacing":10,
+    "backgroundColor":"#020617",
+    "borderRadius":14,
+    "children":[
+      {"type":"box","direction":"stack","height":228,"borderRadius":12,"children":[
+        {"type":"image","url":"https://picsum.photos/seed/vaguecomplexhero/1200/700","fit":"cover","width":4000,"height":228},
+        {"type":"badge","text":"PRO EXPERIENCE","position":"absolute","top":10,"left":10,"backgroundColor":"#2563EB","textColor":"#FFFFFF","borderRadius":8},
+        {"type":"box","direction":"row","position":"absolute","top":10,"right":10,"padding":6,"spacing":4,"backgroundColor":"#AA0F172A","borderRadius":8,"children":[{"type":"icon","name":"sparkles","size":14,"color":"#93C5FD"},{"type":"text","text":"Beta","size":11,"color":"#DBEAFE"}]},
+        {"type":"box","direction":"column","position":"absolute","left":10,"right":10,"bottom":10,"padding":10,"spacing":6,"backgroundColor":"#AA0F172A","borderRadius":10,"children":[
+          {"type":"text","text":"Creator Dashboard","weight":"bold","size":17,"color":"#FFFFFF"},
+          {"type":"text","text":"Template flex kompleks: hero + stats + carousel + multi CTA","size":12,"color":"#CBD5E1","maxLines":2}
+        ]}
+      ]},
+      {"type":"box","direction":"row","spacing":8,"children":[
+        {"type":"box","direction":"column","flex":1,"padding":8,"spacing":3,"backgroundColor":"#0F172A","borderRadius":10,"children":[{"type":"text","text":"12.4K","weight":"bold","size":15,"color":"#FFFFFF","align":"center"},{"type":"text","text":"Views","size":11,"color":"#94A3B8","align":"center"}]},
+        {"type":"box","direction":"column","flex":1,"padding":8,"spacing":3,"backgroundColor":"#0F172A","borderRadius":10,"children":[{"type":"text","text":"3.9K","weight":"bold","size":15,"color":"#FFFFFF","align":"center"},{"type":"text","text":"Clicks","size":11,"color":"#94A3B8","align":"center"}]},
+        {"type":"box","direction":"column","flex":1,"padding":8,"spacing":3,"backgroundColor":"#0F172A","borderRadius":10,"children":[{"type":"text","text":"28%","weight":"bold","size":15,"color":"#FFFFFF","align":"center"},{"type":"text","text":"CTR","size":11,"color":"#94A3B8","align":"center"}]}
+      ]},
+      {"type":"box","direction":"row","justify":"spaceBetween","align":"center","children":[
+        {"type":"text","text":"Featured Packs","weight":"bold","size":15,"color":"#FFFFFF"},
+        {"type":"text","text":"Swipe ->","size":11,"color":"#93C5FD"}
+      ]},
+      {"type":"carousel","spacing":10,"itemWidth":236,"itemHeight":206,"children":[
+        {"type":"box","direction":"column","padding":10,"spacing":7,"backgroundColor":"#111827","borderRadius":12,"children":[
+          {"type":"image","url":"https://picsum.photos/seed/vaguecomplex1/1000/560","ratio":1.8,"fit":"cover","borderRadius":9},
+          {"type":"box","direction":"row","justify":"spaceBetween","align":"center","children":[{"type":"text","text":"Starter Growth","weight":"bold","size":13,"color":"#FFFFFF"},{"type":"badge","text":"HOT","backgroundColor":"#DC2626","textColor":"#FFFFFF","borderRadius":7}]},
+          {"type":"text","text":"Boost engagement cepat untuk akun baru.","size":11,"color":"#94A3B8","maxLines":2},
+          {"type":"button","label":"Activate","backgroundColor":"#2563EB","textColor":"#FFFFFF","borderRadius":9,"action":{"type":"deep_link","url":"vague://pack/starter"}}
+        ]},
+        {"type":"box","direction":"column","padding":10,"spacing":7,"backgroundColor":"#111827","borderRadius":12,"children":[
+          {"type":"image","url":"https://picsum.photos/seed/vaguecomplex2/1000/560","ratio":1.8,"fit":"cover","borderRadius":9},
+          {"type":"box","direction":"row","justify":"spaceBetween","align":"center","children":[{"type":"text","text":"Creator Plus","weight":"bold","size":13,"color":"#FFFFFF"},{"type":"badge","text":"NEW","backgroundColor":"#16A34A","textColor":"#FFFFFF","borderRadius":7}]},
+          {"type":"text","text":"Template visual untuk campaign mingguan.","size":11,"color":"#94A3B8","maxLines":2},
+          {"type":"button","label":"Preview","backgroundColor":"#0EA5E9","textColor":"#FFFFFF","borderRadius":9,"action":{"type":"open_url","url":"https://vague-infinity.com"}}
+        ]},
+        {"type":"box","direction":"column","padding":10,"spacing":7,"backgroundColor":"#111827","borderRadius":12,"children":[
+          {"type":"image","url":"https://picsum.photos/seed/vaguecomplex3/1000/560","ratio":1.8,"fit":"cover","borderRadius":9},
+          {"type":"box","direction":"row","justify":"spaceBetween","align":"center","children":[{"type":"text","text":"Enterprise","weight":"bold","size":13,"color":"#FFFFFF"},{"type":"badge","text":"PRO","backgroundColor":"#7C3AED","textColor":"#FFFFFF","borderRadius":7}]},
+          {"type":"text","text":"Automation + analytics penuh untuk tim.","size":11,"color":"#94A3B8","maxLines":2},
+          {"type":"button","label":"Contact Sales","backgroundColor":"#F59E0B","textColor":"#111827","borderRadius":9,"action":{"type":"open_url","url":"https://vague-infinity.com"}}
+        ]}
+      ]},
+      {"type":"box","direction":"row","spacing":8,"children":[
+        {"type":"button","flex":1,"label":"Open App","backgroundColor":"#2563EB","textColor":"#FFFFFF","borderRadius":10,"action":{"type":"deep_link","url":"vague://home"}},
+        {"type":"button","flex":1,"label":"Share","backgroundColor":"#1D4ED8","textColor":"#FFFFFF","borderRadius":10,"action":{"type":"copy_text","text":"Coba demo flexcomplex di bot Vague!"}}
+      ]}
     ]
   }
 }`
@@ -938,6 +1006,11 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			_ = c.SendMessage(ctx, target, "flexprofile failed: "+err.Error())
 			return
 		}
+	} else if command == "flexcomplex" {
+		if err := c.SendFlexMessage(ctx, target, defaultVFlexComplexDemoJSON, "VFlex Complex Demo"); err != nil {
+			_ = c.SendMessage(ctx, target, "flexcomplex failed: "+err.Error())
+			return
+		}
 	} else if command == "me" {
 		targetCID := strings.TrimSpace(strings.Join(args, " "))
 		if targetCID == "" {
@@ -1104,11 +1177,12 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			return
 		}
 		cons := MentionList(message)
+		fmt.Println("Mention:", cons)
 		room := GetRoom(target)
 		if len(cons) != 0 {
-			for _, target := range cons {
+			for _, sss := range cons {
 				go func(target string) {
-					_ = c.RemoveMember(ctx, target, target)
+					_ = c.RemoveMember(ctx, target, sss)
 					if !Contains(Squad, target) {
 						AddBan(target, room)
 					}

@@ -36,7 +36,7 @@ func LoadConfig() Config {
 	return Config{
 		Target:        firstNonEmpty(os.Getenv("VAGUE_BOT_GRPC_TARGET"), os.Getenv("BOT_GRPC_TARGET"), "svc.vague-infinity.com:443"),
 		AccountFile:   firstNonEmpty(os.Getenv("VAGUE_BOT_ACCOUNT_FILE"), os.Getenv("BOT_ACCOUNT_FILE"), detectDefaultAccountFile()),
-		AppVersion:    "1.1.4",
+		AppVersion:    "1.1.5",
 		AppBuild:      "33",
 		AppRevision:   firstNonEmpty(os.Getenv("VAGUE_BOT_APP_REVISION"), os.Getenv("BOT_APP_REVISION"), os.Getenv("APP_CURRENT_REVISION"), "3"),
 		AppName:       firstNonEmpty(os.Getenv("VAGUE_BOT_APP_NAME"), os.Getenv("BOT_APP_NAME"), firstCSVItem(os.Getenv("APP_NAME")), "ANDROID"),

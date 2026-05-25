@@ -22,7 +22,8 @@ type AccountRecord struct {
 }
 
 type accountFile struct {
-	Accounts []AccountRecord `json:"accounts"`
+	Accounts       []AccountRecord `json:"accounts"`
+	AccountsSelfbot []AccountRecord `json:"accountsSelfbot"`
 }
 
 type AccountStore struct {
@@ -66,6 +67,9 @@ func (s *AccountStore) load() error {
 	if decoded.Accounts == nil {
 		decoded.Accounts = []AccountRecord{}
 	}
+	if decoded.AccountsSelfbot == nil {
+		decoded.AccountsSelfbot = []AccountRecord{}
+	}
 	s.data = decoded
 	return nil
 }
@@ -77,6 +81,64 @@ func (s *AccountStore) Accounts() []AccountRecord {
 	out := make([]AccountRecord, 0, len(s.data.Accounts))
 	out = append(out, s.data.Accounts...)
 	return out
+}
+
+func (s *AccountStore) AccountsSelfbot() []AccountRecord {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	out := make([]AccountRecord, 0, len(s.data.AccountsSelfbot))
+	out = append(out, s.data.AccountsSelfbot...)
+	return out
+}
+
+func (s *AccountStore) UpsertSelfbot(account AccountRecord) error {
+	if account.Token == "" && account.CID == "" {
+		return nil
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	index := -1
+	for i := range s.data.AccountsSelfbot {
+		current := s.data.AccountsSelfbot[i]
+		if account.CID != "" && current.CID == account.CID {
+			index = i
+			break
+		}
+		if account.Token != "" && current.Token == account.Token {
+			index = i
+			break
+		}
+	}
+
+	if index < 0 {
+		s.data.AccountsSelfbot = append(s.data.AccountsSelfbot, account)
+		return s.saveLocked()
+	}
+
+	existing := s.data.AccountsSelfbot[index]
+	if account.CID != "" {
+		existing.CID = account.CID
+	}
+	if account.Token != "" {
+		existing.Token = account.Token
+	}
+	if account.RefreshToken != "" {
+		existing.RefreshToken = account.RefreshToken
+	}
+	if account.DeviceID != "" {
+		existing.DeviceID = account.DeviceID
+	}
+	if account.E2EEPublic != "" {
+		existing.E2EEPublic = account.E2EEPublic
+	}
+	if account.E2EEPrivate != "" {
+		existing.E2EEPrivate = account.E2EEPrivate
+	}
+	s.data.AccountsSelfbot[index] = existing
+	return s.saveLocked()
 }
 
 func (s *AccountStore) Upsert(account AccountRecord) error {

@@ -127,6 +127,7 @@ flexnews
 flexevent
 flexcopy
 flexprofile
+flexcomplex
 ```
 
 Command profile flex (adaptasi dari konsep "me"):
