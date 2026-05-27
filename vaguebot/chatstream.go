@@ -1012,7 +1012,7 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			return
 		}
 		_ = c.SendMessage(ctx, target, fmt.Sprintf("upload success: url=%s size=%d mime=%s", uploaded.URL, uploaded.Size, uploaded.MIMEType))
-	} else if command == "flex" {
+	} else if command == "flexcmd" {
 		if strings.TrimSpace(rawArgs) == "" {
 			if err := c.SendFlexMessage(ctx, target, defaultVFlexTemplateJSON, "Halo Flex"); err != nil {
 				_ = c.SendMessage(ctx, target, "flex failed: "+err.Error())

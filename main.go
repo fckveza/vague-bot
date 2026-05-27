@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -94,8 +95,25 @@ func main() {
 			log.Fatalf("no accounts found in %s", cfg.AccountFile)
 		}
 
-		clients = make([]*vaguebot.Client, 0, len(accounts))
-		for _, account := range accounts {
+		// Filter out placeholder accounts
+		validAccounts := make([]vaguebot.AccountRecord, 0)
+		for _, acc := range accounts {
+			// Skip placeholder accounts
+			if strings.HasPrefix(acc.CID, "your_") || acc.CID == "" {
+				log.Printf("skipping placeholder account cid=%s", acc.CID)
+				continue
+			}
+			validAccounts = append(validAccounts, acc)
+		}
+
+		if len(validAccounts) == 0 {
+			log.Fatalf("no valid accounts found in %s (all are placeholders)", cfg.AccountFile)
+		}
+
+		log.Printf("found %d valid account(s)", len(validAccounts))
+
+		clients = make([]*vaguebot.Client, 0, len(validAccounts))
+		for _, account := range validAccounts {
 			client, err := vaguebot.CreateClient(ctx, account, cfg, store.Upsert)
 			if err != nil {
 				log.Printf("skip account cid=%s email=%s: %v", account.CID, account.Email, err)
