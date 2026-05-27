@@ -608,6 +608,68 @@ const defaultVFlexComplexDemoJSON = `{
     ]
   }
 }`
+const defaultVFlexYouTubeDemoJSON = `{
+  "type":"vflex",
+  "version":2,
+  "meta":{"safeArea":"true","maxHeightRatio":"0.88"},
+  "altText":"VFlex YouTube Style Demo (Light)",
+  "body":{
+    "type":"box",
+    "direction":"column",
+    "padding":12,
+    "spacing":10,
+    "backgroundColor":"#F8FAFC",
+    "borderRadius":14,
+    "children":[
+      {"type":"text","text":"VagueTube Preview","size":16,"weight":"bold","color":"#0F172A"},
+      {"type":"video","url":"https://www.image2url.com/r2/default/videos/1779884424004-0c282c27-23b1-41d9-97a9-95c7e88f5806.mp4","ratio":1.7778,"fit":"cover","showControls":true,"autoPlay":false,"muted":false,"borderRadius":12},
+      {"type":"text","text":"Cara bikin Flex Video yang clean di chat Vague","size":14,"weight":"bold","color":"#111827","maxLines":2},
+      {"type":"box","direction":"row","spacing":10,"align":"center","children":[
+        {"type":"image","url":"https://picsum.photos/seed/vaguechannel/120/120","width":36,"height":36,"fit":"cover","borderRadius":18},
+        {"type":"box","direction":"column","spacing":2,"flex":1,"children":[
+          {"type":"text","text":"Vague Creator Channel","size":12,"weight":"bold","color":"#0F172A"},
+          {"type":"text","text":"128K subscribers","size":11,"color":"#64748B"}
+        ]},
+        {"type":"button","label":"Subscribe","padding":8,"size":12,"backgroundColor":"#FF0000","textColor":"#FFFFFF","borderRadius":18,"action":{"type":"open_url","url":"https://vague-infinity.com"}}
+      ]},
+      {"type":"box","direction":"row","spacing":8,"children":[
+        {"type":"box","direction":"row","flex":1,"padding":8,"spacing":4,"justify":"center","align":"center","backgroundColor":"#E2E8F0","borderRadius":18,"children":[{"type":"icon","name":"heart","size":16,"color":"#0F172A"},{"type":"text","text":"Like","size":11,"color":"#0F172A"}]},
+        {"type":"box","direction":"row","flex":1,"padding":8,"spacing":4,"justify":"center","align":"center","backgroundColor":"#E2E8F0","borderRadius":18,"children":[{"type":"icon","name":"chat","size":16,"color":"#0F172A"},{"type":"text","text":"Comment","size":11,"color":"#0F172A"}]},
+        {"type":"box","direction":"row","flex":1,"padding":8,"spacing":4,"justify":"center","align":"center","backgroundColor":"#E2E8F0","borderRadius":18,"children":[{"type":"icon","name":"send","size":16,"color":"#0F172A"},{"type":"text","text":"Share","size":11,"color":"#0F172A"}]}
+      ]}
+    ]
+  }
+}`
+const defaultVFlexSpotifyDemoJSON = `{
+  "type":"vflex",
+  "version":2,
+  "meta":{"safeArea":"true","maxHeightRatio":"0.88"},
+  "altText":"VFlex Spotify Style Demo",
+  "body":{
+    "type":"box",
+    "direction":"column",
+    "padding":12,
+    "spacing":10,
+    "backgroundColor":"#121212",
+    "borderRadius":14,
+    "children":[
+      {"type":"text","text":"Now Playing","size":12,"color":"#93C5FD"},
+      {"type":"box","direction":"row","spacing":10,"align":"center","children":[
+        {"type":"image","url":"https://picsum.photos/seed/vaguespotifycover/280/280","width":76,"height":76,"fit":"cover","borderRadius":10},
+        {"type":"box","direction":"column","flex":1,"spacing":3,"children":[
+          {"type":"text","text":"Midnight Flex Session","size":15,"weight":"bold","color":"#FFFFFF","maxLines":1},
+          {"type":"text","text":"Vague Audio Lab","size":12,"color":"#9CA3AF","maxLines":1},
+          {"type":"badge","text":"SPOTIFY VIBE","size":10,"padding":5,"backgroundColor":"#1DB954","textColor":"#06210F","borderRadius":8}
+        ]}
+      ]},
+      {"type":"audio","url":"https://dl.espressif.com/dl/audio/ff-16b-2c-44100hz.mp3","title":"Midnight Flex Session","artist":"Vague Audio Lab","artworkUrl":"https://picsum.photos/seed/vaguespotifycover/280/280","showProgress":true,"autoPlay":false,"loop":false,"backgroundColor":"#181818","borderRadius":12},
+      {"type":"box","direction":"row","spacing":8,"children":[
+        {"type":"button","label":"Open Playlist","flex":1,"padding":9,"size":12,"backgroundColor":"#1DB954","textColor":"#06210F","borderRadius":20,"action":{"type":"open_url","url":"https://open.spotify.com"}},
+        {"type":"button","label":"Copy Track","flex":1,"padding":9,"size":12,"backgroundColor":"#2A2A2A","textColor":"#FFFFFF","borderRadius":20,"action":{"type":"copy_text","text":"Midnight Flex Session - Vague Audio Lab"}}
+      ]}
+    ]
+  }
+}`
 
 // loadCommands loads command help from embedded JSON
 func loadCommands() (map[string]string, error) {
@@ -1009,6 +1071,16 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 	} else if command == "flexcomplex" {
 		if err := c.SendFlexMessage(ctx, target, defaultVFlexComplexDemoJSON, "VFlex Complex Demo"); err != nil {
 			_ = c.SendMessage(ctx, target, "flexcomplex failed: "+err.Error())
+			return
+		}
+	} else if command == "flexyoutube" || command == "flexvideo" {
+		if err := c.SendFlexMessage(ctx, target, defaultVFlexYouTubeDemoJSON, "VFlex YouTube Style Demo"); err != nil {
+			_ = c.SendMessage(ctx, target, "flexyoutube failed: "+err.Error())
+			return
+		}
+	} else if command == "flexspotify" || command == "flexaudio" {
+		if err := c.SendFlexMessage(ctx, target, defaultVFlexSpotifyDemoJSON, "VFlex Spotify Style Demo"); err != nil {
+			_ = c.SendMessage(ctx, target, "flexspotify failed: "+err.Error())
 			return
 		}
 	} else if command == "me" {

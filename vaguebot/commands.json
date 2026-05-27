@@ -39,5 +39,9 @@
   "flexcopy": "Flex copy",
   "flexprofile": "Flex profile",
   "flexcomplex": "Flex complex",
+  "flexyoutube": "Flex YouTube-style video",
+  "flexvideo": "Flex video demo",
+  "flexspotify": "Flex Spotify-style audio",
+  "flexaudio": "Flex audio demo",
   "me": "Show profile"
 }

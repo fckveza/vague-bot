@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	vaguebot.Selfbot = true
+	vaguebot.Selfbot = false
 	var clients []*vaguebot.Client
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()

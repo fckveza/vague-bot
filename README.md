@@ -128,6 +128,10 @@ flexevent
 flexcopy
 flexprofile
 flexcomplex
+flexyoutube
+flexvideo
+flexspotify
+flexaudio
 ```
 
 Command profile flex (adaptasi dari konsep "me"):
