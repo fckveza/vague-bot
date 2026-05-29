@@ -1039,6 +1039,69 @@ func (c *Client) SendAudio(ctx context.Context, to, path string) error {
 	return c.sendMediaCompat(ctx, to, path, pb.ContentType_AUDIO)
 }
 
+func isValidMentionCID(cid string) bool {
+	for _, r := range cid {
+		if (r >= 'a' && r <= 'z') ||
+			(r >= 'A' && r <= 'Z') ||
+			(r >= '0' && r <= '9') ||
+			r == '_' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func sanitizeMentionCIDs(cids []string) []string {
+	out := make([]string, 0, len(cids))
+	seen := make(map[string]struct{}, len(cids))
+	for _, raw := range cids {
+		cid := strings.TrimSpace(raw)
+		if cid == "" || !isValidMentionCID(cid) {
+			continue
+		}
+		if _, ok := seen[cid]; ok {
+			continue
+		}
+		seen[cid] = struct{}{}
+		out = append(out, cid)
+		if len(out) >= 100 {
+			break
+		}
+	}
+	return out
+}
+
+func buildMentionPayload(text string, cids []string) (map[string]string, string) {
+	normalizedText := strings.TrimSpace(text)
+	filtered := sanitizeMentionCIDs(cids)
+	if len(filtered) == 0 {
+		return map[string]string{}, normalizedText
+	}
+
+	tokens := make([]string, 0, len(filtered))
+	for _, cid := range filtered {
+		token := "@" + cid
+		tokens = append(tokens, token)
+		if !strings.Contains(normalizedText, token) {
+			if normalizedText != "" {
+				normalizedText += " "
+			}
+			normalizedText += token
+		}
+	}
+	mention := strings.Join(tokens, "")
+	return map[string]string{
+		"mention": mention,
+		"MENTION": mention,
+	}, normalizedText
+}
+
+func (c *Client) SendMention(ctx context.Context, to, text string, cids []string) error {
+	metadata, normalizedText := buildMentionPayload(text, cids)
+	return c.sendPreparedMessage(ctx, to, normalizedText, pb.ContentType_NONE, metadata)
+}
+
 func normalizeFlexJSONPayload(raw string) (string, error) {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {

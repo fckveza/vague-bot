@@ -53,5 +53,6 @@
   "flexspotify": "Flex Spotify",
   "flexaudio": "Flex audio",
   "me": "Show profile",
-  "changecover": "Change bot cover"
+  "changecover": "Change bot cover",
+  "tagall": "Mention all members"
 }

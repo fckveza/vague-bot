@@ -1964,6 +1964,50 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			memberCount = len(group.GetExtra().GetMembers())
 		}
 		_ = c.SendMessage(ctx, target, fmt.Sprintf("groupname: id=%s name=%s members=%d", group.GetGroupId(), group.GetName(), memberCount))
+	} else if command == "tagall" {
+		if message.GetMessageType() != pb.MessageType_MessageType_Group {
+			_ = c.SendMessage(ctx, target, "tagall failed: group only")
+			return
+		}
+		groupID := strings.TrimSpace(message.GetMessageTo())
+		group, err := c.GetGroup(ctx, groupID)
+		if err != nil || group == nil || group.GetExtra() == nil {
+			_ = c.SendMessage(ctx, target, "tagall failed: cannot load group members")
+			return
+		}
+		memberIDs := make([]string, 0, len(group.GetExtra().GetMembers()))
+		for mid := range group.GetExtra().GetMembers() {
+			mid = strings.TrimSpace(mid)
+			if mid != "" {
+				memberIDs = append(memberIDs, mid)
+			}
+		}
+		if len(memberIDs) == 0 {
+			_ = c.SendMessage(ctx, target, "tagall: no members")
+			return
+		}
+
+		const chunkSize = 100
+		sent := 0
+		for i := 0; i < len(memberIDs); i += chunkSize {
+			end := i + chunkSize
+			if end > len(memberIDs) {
+				end = len(memberIDs)
+			}
+			chunk := memberIDs[i:end]
+			lines := make([]string, 0, len(chunk))
+			for j, mid := range chunk {
+				lines = append(lines, fmt.Sprintf("%d. @%s", i+j+1, strings.TrimSpace(mid)))
+			}
+			text := strings.Join(lines, "\n")
+			if err := c.SendMention(ctx, target, text, chunk); err == nil {
+				sent++
+			}
+		}
+		if sent == 0 {
+			_ = c.SendMessage(ctx, target, "tagall failed: cannot send mention")
+			return
+		}
 	} else if command == "invite" {
 		if len(args) < 2 {
 			_ = c.SendMessage(ctx, target, "invite failed: usage invite <group_id> <cid...>")
