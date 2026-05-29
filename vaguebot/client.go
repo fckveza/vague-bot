@@ -32,10 +32,66 @@ var Squad = []string{}
 var Blacklist = []string{}
 var Mclient = map[string]*Client{}
 var Protected = []string{}
+var (
+	selfbotCIDsMu sync.RWMutex
+	selfbotCIDs   = map[string]struct{}{}
+)
 
 const maxFlexPayloadBytes = 32 * 1024
+const internalBotMessageMetadataKey = "vaguebot_internal_sender"
 
 type PersistAccountFunc func(AccountRecord) error
+
+func SetSelfbotCIDs(accounts []AccountRecord) {
+	next := make(map[string]struct{}, len(accounts))
+	for _, account := range accounts {
+		cid := strings.TrimSpace(account.CID)
+		if cid == "" {
+			continue
+		}
+		next[cid] = struct{}{}
+	}
+
+	selfbotCIDsMu.Lock()
+	selfbotCIDs = next
+	selfbotCIDsMu.Unlock()
+}
+
+func isSelfbotCID(cid string) bool {
+	cid = strings.TrimSpace(cid)
+	if cid == "" {
+		return false
+	}
+	if strings.EqualFold(cid, "SELFBOT") {
+		return true
+	}
+
+	selfbotCIDsMu.RLock()
+	_, ok := selfbotCIDs[cid]
+	selfbotCIDsMu.RUnlock()
+	return ok
+}
+
+func (c *Client) IsSelfbotClient() bool {
+	if c == nil {
+		return false
+	}
+	cid := strings.TrimSpace(c.CurrentCID())
+	if cid == "" {
+		cid = strings.TrimSpace(c.CID)
+	}
+	return isSelfbotCID(cid)
+}
+
+func HasActiveSelfbotClient() bool {
+	clients := snapshotPeerClients()
+	for _, client := range clients {
+		if client != nil && client.IsSelfbotClient() {
+			return true
+		}
+	}
+	return false
+}
 
 type recipientBundleKey struct {
 	DeviceID     string `json:"device_id"`
@@ -835,7 +891,15 @@ func (c *Client) UpdateProfile(ctx context.Context, attributes, meta map[string]
 }
 
 func (c *Client) SendMessage(ctx context.Context, to, text string) error {
-	return c.sendPreparedMessage(ctx, to, text, pb.ContentType_NONE, nil)
+	return c.sendPreparedMessage(
+		ctx,
+		to,
+		text,
+		pb.ContentType_NONE,
+		map[string]string{
+			internalBotMessageMetadataKey: "1",
+		},
+	)
 }
 
 func (c *Client) SendFlexMessage(ctx context.Context, to, flexJSON, altText string) error {
@@ -860,6 +924,119 @@ func (c *Client) SendFlexMessage(ctx context.Context, to, flexJSON, altText stri
 			"flex_alt_text": normalizedAltText,
 		},
 	)
+}
+
+func (c *Client) SendContacts(ctx context.Context, to string, cids []string) error {
+	var lastErr error
+	for _, cid := range cids {
+		cid = strings.TrimSpace(cid)
+		if cid == "" {
+			continue
+		}
+		if err := c.SendContact(ctx, to, cid); err != nil {
+			lastErr = err
+		}
+	}
+	return lastErr
+}
+
+func (c *Client) SendContact(ctx context.Context, to, contactCID string) error {
+	contactCID = strings.TrimSpace(contactCID)
+	if contactCID == "" {
+		return errors.New("contact cid is required")
+	}
+
+	contacts, err := c.GetContacts(ctx, []string{contactCID})
+	if err != nil {
+		return fmt.Errorf("get contact: %w", err)
+	}
+	if len(contacts) == 0 || contacts[0] == nil {
+		return errors.New("contact not found")
+	}
+	contact := contacts[0]
+
+	contentMetadata := map[string]string{
+		"contact_cid":             strings.TrimSpace(contactCID),
+		"contact_display_name":    strings.TrimSpace(contact.GetDisplayName()),
+		"contact_picture_profile": strings.TrimSpace(contact.GetPictureProfile()),
+		"contact_status_message":  strings.TrimSpace(contact.GetStatusMessage()),
+		"contact_online_status":   "Offline",
+		"contact_last_seen":       strconv.FormatInt(contact.GetLastActiveAt(), 10),
+	}
+	return c.sendPreparedMessage(ctx, to, "", pb.ContentType_CONTACT, contentMetadata)
+}
+
+func isRemoteMediaRef(path string) bool {
+	trimmed := strings.TrimSpace(path)
+	return strings.HasPrefix(trimmed, "http://") || strings.HasPrefix(trimmed, "https://")
+}
+
+func remoteMediaMetadata(url string, contentType pb.ContentType) map[string]string {
+	url = strings.TrimSpace(url)
+	metadata := map[string]string{
+		"url":       url,
+		"media_url": url,
+	}
+	switch contentType {
+	case pb.ContentType_IMAGE:
+		metadata["image_url"] = url
+	case pb.ContentType_VIDEO:
+		metadata["video_url"] = url
+		metadata["preview_image_url"] = url
+		metadata["previewImageUrl"] = url
+	case pb.ContentType_AUDIO:
+		metadata["audio_url"] = url
+	}
+	return metadata
+}
+
+func (c *Client) sendMediaCompat(ctx context.Context, to, path string, contentType pb.ContentType) error {
+	path = strings.TrimSpace(path)
+	if path == "" {
+		return errors.New("media path/url is required")
+	}
+	if isRemoteMediaRef(path) {
+		return c.sendPreparedMessage(ctx, to, "", contentType, remoteMediaMetadata(path, contentType))
+	}
+
+	uploaded, err := c.UploadMedia(ctx, path, "message", to)
+	if err != nil {
+		return err
+	}
+	contentMetadata := map[string]string{
+		"url":             uploaded.URL,
+		"media_url":       uploaded.URL,
+		"file_name":       uploaded.FileName,
+		"fileName":        uploaded.FileName,
+		"mime_type":       uploaded.MIMEType,
+		"mimetype":        uploaded.MIMEType,
+		"file_size":       strconv.FormatInt(uploaded.Size, 10),
+		"e2ee_media_name": uploaded.FileName,
+		"e2ee_media_mime": uploaded.MIMEType,
+	}
+	switch contentType {
+	case pb.ContentType_IMAGE:
+		contentMetadata["image_url"] = uploaded.URL
+	case pb.ContentType_VIDEO:
+		contentMetadata["video_url"] = uploaded.URL
+		contentMetadata["preview_image_url"] = uploaded.URL
+		contentMetadata["previewImageUrl"] = uploaded.URL
+	case pb.ContentType_AUDIO:
+		contentMetadata["audio_url"] = uploaded.URL
+	}
+	return c.sendPreparedMessage(ctx, to, "", contentType, contentMetadata)
+}
+
+func (c *Client) SendImage(ctx context.Context, to, path string) error {
+	return c.sendMediaCompat(ctx, to, path, pb.ContentType_IMAGE)
+}
+
+func (c *Client) SendVideo(ctx context.Context, to, path string) error {
+	return c.sendMediaCompat(ctx, to, path, pb.ContentType_VIDEO)
+}
+
+func (c *Client) SendAudio(ctx context.Context, to, path string) error {
+	return c.sendMediaCompat(ctx, to, path, pb.ContentType_AUDIO)
 }
 
 func normalizeFlexJSONPayload(raw string) (string, error) {

@@ -22,7 +22,7 @@ type AccountRecord struct {
 }
 
 type accountFile struct {
-	Accounts       []AccountRecord `json:"accounts"`
+	Accounts        []AccountRecord `json:"accounts"`
 	AccountsSelfbot []AccountRecord `json:"accountsSelfbot"`
 }
 
@@ -127,6 +127,9 @@ func (s *AccountStore) UpsertSelfbot(account AccountRecord) error {
 	}
 	if account.RefreshToken != "" {
 		existing.RefreshToken = account.RefreshToken
+	}
+	if account.Revision > 0 {
+		existing.Revision = account.Revision
 	}
 	if account.DeviceID != "" {
 		existing.DeviceID = account.DeviceID

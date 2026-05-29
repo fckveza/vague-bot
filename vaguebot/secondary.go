@@ -333,16 +333,17 @@ func (client *Client) finishSelfbotLogin(cid, username, token, refreshToken stri
 	store, err := NewAccountStore(cfg.AccountFile)
 	if err == nil {
 		account := AccountRecord{
-			CID:           cid,
-			Token:         token,
-			RefreshToken:  refreshToken,
-			DeviceID:      authClient.deviceID,
-			E2EEPublic:    authClient.e2eePublicB64,
-			E2EEPrivate:   authClient.e2eePrivateB64,
+			CID:          cid,
+			Token:        token,
+			RefreshToken: refreshToken,
+			DeviceID:     authClient.deviceID,
+			E2EEPublic:   authClient.e2eePublicB64,
+			E2EEPrivate:  authClient.e2eePrivateB64,
 		}
 		if err := store.UpsertSelfbot(account); err != nil {
 			log.Printf("Failed to save selfbot credentials: %v", err)
 		} else {
+			SetSelfbotCIDs(store.AccountsSelfbot())
 			log.Printf("Selfbot credentials saved to %s", cfg.AccountFile)
 		}
 	}

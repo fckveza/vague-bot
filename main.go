@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -17,8 +18,92 @@ import (
 	"vague-bot/vaguebot"
 )
 
+func buildBotClients(
+	ctx context.Context,
+	cfg vaguebot.Config,
+	store *vaguebot.AccountStore,
+	requireAtLeastOne bool,
+) ([]*vaguebot.Client, error) {
+	accounts := store.Accounts()
+	if len(accounts) == 0 {
+		if requireAtLeastOne {
+			return nil, fmt.Errorf("no accounts found in %s", cfg.AccountFile)
+		}
+		return []*vaguebot.Client{}, nil
+	}
+
+	validAccounts := make([]vaguebot.AccountRecord, 0, len(accounts))
+	for _, acc := range accounts {
+		if strings.HasPrefix(acc.CID, "your_") || strings.TrimSpace(acc.CID) == "" {
+			log.Printf("skipping placeholder account cid=%s", acc.CID)
+			continue
+		}
+		validAccounts = append(validAccounts, acc)
+	}
+	if len(validAccounts) == 0 {
+		if requireAtLeastOne {
+			return nil, fmt.Errorf("no valid accounts found in %s (all are placeholders)", cfg.AccountFile)
+		}
+		return []*vaguebot.Client{}, nil
+	}
+
+	log.Printf("found %d valid bot account(s)", len(validAccounts))
+	clients := make([]*vaguebot.Client, 0, len(validAccounts))
+
+	for _, account := range validAccounts {
+		client, err := vaguebot.CreateClient(ctx, account, cfg, store.Upsert)
+		if err != nil {
+			log.Printf("skip account cid=%s email=%s: %v", account.CID, account.Email, err)
+			continue
+		}
+
+		profile, err := client.GetProfile(ctx)
+		if err != nil {
+			res, err := client.RefreshAuthToken(ctx, client.RefreshToken)
+			if err != nil {
+				log.Printf("failed to refresh auth token for cid=%s email=%s: %v", account.CID, account.Email, err)
+				_ = client.Close()
+				continue
+			}
+			client.Token = res.GetToken()
+			client.RefreshToken = res.GetRefreshToken()
+			log.Printf("refreshed auth token for cid=%s email=%s", account.CID, account.Email)
+		}
+		if profile != nil {
+			log.Printf("bot active cid=%s display_name=%s", profile.GetCid(), profile.GetDisplayName())
+		} else {
+			log.Printf("bot active cid=%s", client.CurrentCID())
+		}
+
+		if err := client.EnsureE2EEIdentity(ctx); err != nil {
+			log.Printf("failed init e2ee key for cid=%s: %v", client.CurrentCID(), err)
+			_ = client.Close()
+			continue
+		}
+
+		if err := client.AcceptAllPendingInvitations(ctx); err != nil {
+			log.Printf("[%s] failed accepting invitations: %v", client.CurrentCID(), err)
+		}
+		_ = client.PersistState()
+		clients = append(clients, client)
+
+		ress, err := client.GetLastEventRevision(ctx)
+		if err != nil {
+			log.Printf("failed to get last event revision for cid=%s: %v", client.CID, err)
+		} else {
+			client.Revision = ress.GetCurrentRevision()
+			log.Println(client.Revision)
+		}
+	}
+
+	if requireAtLeastOne && len(clients) == 0 {
+		return nil, errors.New("no bot client can be started (all accounts failed)")
+	}
+	return clients, nil
+}
+
 func main() {
-	vaguebot.Selfbot = false
+	vaguebot.Selfbot = true
 	var clients []*vaguebot.Client
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -28,6 +113,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed init account store: %v", err)
 		}
+		vaguebot.SetSelfbotCIDs(store.AccountsSelfbot())
 
 		accounts := store.AccountsSelfbot()
 		log.Printf("Selfbot: found %d saved accounts", len(accounts))
@@ -35,7 +121,7 @@ func main() {
 			// Use existing selfbot account
 			account := accounts[0]
 			log.Printf("Selfbot: trying saved account cid=%s token_len=%d", account.CID, len(account.Token))
-			client, err := vaguebot.CreateClient(ctx, account, cfg, store.Upsert)
+			client, err := vaguebot.CreateClient(ctx, account, cfg, store.UpsertSelfbot)
 			if err != nil {
 				log.Printf("failed to create client from saved account: %v", err)
 				log.Println("Trying fresh login...")
@@ -79,9 +165,18 @@ func main() {
 		if err != nil {
 			log.Panicf("failed to get last event revision for cid=%s: %v", clients[0].CID, err)
 		} else {
-			clients[0].Revision = ress.GetCurrentRevision()
-			log.Println(clients[0].Revision)
+			log.Println(ress.GetCurrentRevision())
+			if err := clients[0].PersistState(); err != nil {
+				log.Printf("failed to persist selfbot state cid=%s: %v", clients[0].CurrentCID(), err)
+			}
 		}
+
+		botClients, err := buildBotClients(ctx, cfg, store, false)
+		if err != nil {
+			log.Printf("failed loading bot accounts in selfbot mode: %v", err)
+		}
+		clients = append(clients, botClients...)
+		log.Printf("running selfbot + %d bot client(s) on %s using %s", len(botClients), cfg.Target, cfg.AccountFile)
 	} else {
 		cfg := vaguebot.LoadConfig()
 
@@ -89,74 +184,11 @@ func main() {
 		if err != nil {
 			log.Fatalf("failed init account store: %v", err)
 		}
+		vaguebot.SetSelfbotCIDs(store.AccountsSelfbot())
 
-		accounts := store.Accounts()
-		if len(accounts) == 0 {
-			log.Fatalf("no accounts found in %s", cfg.AccountFile)
-		}
-
-		// Filter out placeholder accounts
-		validAccounts := make([]vaguebot.AccountRecord, 0)
-		for _, acc := range accounts {
-			// Skip placeholder accounts
-			if strings.HasPrefix(acc.CID, "your_") || acc.CID == "" {
-				log.Printf("skipping placeholder account cid=%s", acc.CID)
-				continue
-			}
-			validAccounts = append(validAccounts, acc)
-		}
-
-		if len(validAccounts) == 0 {
-			log.Fatalf("no valid accounts found in %s (all are placeholders)", cfg.AccountFile)
-		}
-
-		log.Printf("found %d valid account(s)", len(validAccounts))
-
-		clients = make([]*vaguebot.Client, 0, len(validAccounts))
-		for _, account := range validAccounts {
-			client, err := vaguebot.CreateClient(ctx, account, cfg, store.Upsert)
-			if err != nil {
-				log.Printf("skip account cid=%s email=%s: %v", account.CID, account.Email, err)
-				continue
-			}
-
-			profile, err := client.GetProfile(ctx)
-			if err != nil {
-				res, err := client.RefreshAuthToken(ctx, client.RefreshToken)
-				if err != nil {
-					log.Printf("failed to refresh auth token for cid=%s email=%s: %v", account.CID, account.Email, err)
-					_ = client.Close()
-					continue
-				} else {
-					client.Token = res.GetToken()
-					client.RefreshToken = res.GetRefreshToken()
-					log.Printf("refreshed auth token for cid=%s email=%s", account.CID, account.Email)
-				}
-			}
-			if profile != nil {
-				log.Printf("bot active cid=%s display_name=%s", profile.GetCid(), profile.GetDisplayName())
-			} else {
-				log.Printf("bot active cid=%s", client.CurrentCID())
-			}
-
-			if err := client.EnsureE2EEIdentity(ctx); err != nil {
-				log.Printf("failed init e2ee key for cid=%s: %v", client.CurrentCID(), err)
-				_ = client.Close()
-				continue
-			}
-
-			if err := client.AcceptAllPendingInvitations(ctx); err != nil {
-				log.Printf("[%s] failed accepting invitations: %v", client.CurrentCID(), err)
-			}
-			_ = client.PersistState()
-			clients = append(clients, client)
-			ress, err := client.GetLastEventRevision(ctx)
-			if err != nil {
-				log.Printf("failed to get last event revision for cid=%s: %v", client.CID, err)
-			} else {
-				client.Revision = ress.GetCurrentRevision()
-				log.Println(client.Revision)
-			}
+		clients, err = buildBotClients(ctx, cfg, store, true)
+		if err != nil {
+			log.Fatal(err)
 		}
 		log.Printf("running %d bot client(s) on %s using %s", len(clients), cfg.Target, cfg.AccountFile)
 	}
@@ -167,8 +199,17 @@ func main() {
 
 	vaguebot.SetPeerClients(clients)
 
-	// Add all clients to Squad and Mclient
+	// Refresh bot registries (selfbot must not be included as war/list bot).
+	vaguebot.VagueClients = []*vaguebot.Client{}
+	vaguebot.Squad = []string{}
+	vaguebot.Mclient = map[string]*vaguebot.Client{}
+
+	// Add bot clients only to Squad/Mclient/VagueClients
 	for _, client := range clients {
+		if client.IsSelfbotClient() {
+			continue
+		}
+		vaguebot.VagueClients = append(vaguebot.VagueClients, client)
 		vaguebot.Squad = append(vaguebot.Squad, client.CID)
 		vaguebot.Mclient[client.CID] = client
 	}

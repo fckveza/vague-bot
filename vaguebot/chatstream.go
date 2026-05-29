@@ -2,12 +2,19 @@ package vaguebot
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
 	_ "embed"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
+	"net/http"
+	neturl "net/url"
+	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -22,6 +29,643 @@ import (
 var mumu sync.Mutex
 
 var cekOp = make(map[int64]int)
+var commandExecMu sync.Mutex
+var commandExecSeen = make(map[string]struct{})
+var commandExecOrder []string
+var pendingPicMu sync.Mutex
+var pendingChangePicTargets = map[string]string{}
+var pendingSelfChangePicTargets = map[string]string{}
+var pendingChangeCoverTargets = map[string]string{}
+
+func claimCommandExecution(messageID string) bool {
+	messageID = strings.TrimSpace(messageID)
+	if messageID == "" {
+		return true
+	}
+
+	commandExecMu.Lock()
+	defer commandExecMu.Unlock()
+
+	if _, exists := commandExecSeen[messageID]; exists {
+		return false
+	}
+	commandExecSeen[messageID] = struct{}{}
+	commandExecOrder = append(commandExecOrder, messageID)
+	if len(commandExecOrder) > 2048 {
+		oldest := commandExecOrder[0]
+		commandExecOrder = commandExecOrder[1:]
+		delete(commandExecSeen, oldest)
+	}
+	return true
+}
+
+func conversationTargetFromMessage(message *pb.Message) string {
+	if message == nil {
+		return ""
+	}
+	target := strings.TrimSpace(message.GetMessageTo())
+	if message.GetMessageType() == pb.MessageType_MessageType_Private {
+		target = strings.TrimSpace(message.GetMessageFrom())
+	}
+	return target
+}
+
+func setPendingChangePic(target, requesterCID string, selfOnly bool) {
+	target = strings.TrimSpace(target)
+	requesterCID = strings.TrimSpace(requesterCID)
+	if target == "" {
+		return
+	}
+	pendingPicMu.Lock()
+	defer pendingPicMu.Unlock()
+	if selfOnly {
+		pendingSelfChangePicTargets[target] = requesterCID
+		return
+	}
+	pendingChangePicTargets[target] = requesterCID
+}
+
+func consumePendingChangePic(target, senderCID string) (botPending bool, selfPending bool) {
+	target = strings.TrimSpace(target)
+	senderCID = strings.TrimSpace(senderCID)
+	if target == "" {
+		return false, false
+	}
+	pendingPicMu.Lock()
+	defer pendingPicMu.Unlock()
+	if requester, ok := pendingChangePicTargets[target]; ok && (requester == "" || requester == senderCID) {
+		delete(pendingChangePicTargets, target)
+		botPending = true
+	}
+	if requester, ok := pendingSelfChangePicTargets[target]; ok && (requester == "" || requester == senderCID) {
+		delete(pendingSelfChangePicTargets, target)
+		selfPending = true
+	}
+	return botPending, selfPending
+}
+
+func setPendingChangeCover(target, requesterCID string) {
+	target = strings.TrimSpace(target)
+	requesterCID = strings.TrimSpace(requesterCID)
+	if target == "" {
+		return
+	}
+	pendingPicMu.Lock()
+	defer pendingPicMu.Unlock()
+	pendingChangeCoverTargets[target] = requesterCID
+}
+
+func consumePendingChangeCover(target, senderCID string) (coverPending bool) {
+	target = strings.TrimSpace(target)
+	senderCID = strings.TrimSpace(senderCID)
+	if target == "" {
+		return false
+	}
+	pendingPicMu.Lock()
+	defer pendingPicMu.Unlock()
+	if requester, ok := pendingChangeCoverTargets[target]; ok && (requester == "" || requester == senderCID) {
+		delete(pendingChangeCoverTargets, target)
+		return true
+	}
+	return false
+}
+
+func mediaURLFromMessage(msg *pb.Message) string {
+	if msg == nil {
+		return ""
+	}
+	meta := msg.GetContentMetadata()
+	if len(meta) == 0 {
+		return ""
+	}
+	keys := []string{
+		"image_url",
+		"url",
+		"media_url",
+		"preview_image_url",
+		"previewImageUrl",
+	}
+	for _, key := range keys {
+		value := strings.TrimSpace(meta[key])
+		if value != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func hasEncryptedMessageMediaMetadata(metadata map[string]string) bool {
+	if len(metadata) == 0 {
+		return false
+	}
+	return strings.TrimSpace(metadata["e2ee_media"]) == "1" &&
+		strings.TrimSpace(metadata["e2ee_media_key"]) != "" &&
+		strings.TrimSpace(metadata["e2ee_media_iv"]) != ""
+}
+
+func decodeStoredPayloadEntry(raw string) (*pb.E2EEPayload, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, errors.New("missing encrypted payload")
+	}
+	var entry recipientFanoutEnvelope
+	if err := json.Unmarshal([]byte(raw), &entry); err != nil {
+		return nil, fmt.Errorf("decode stored payload json: %w", err)
+	}
+	ephemeralRaw, err := base64.StdEncoding.DecodeString(strings.TrimSpace(entry.EphemeralPublicKey))
+	if err != nil {
+		return nil, fmt.Errorf("decode stored payload ephemeral public key: %w", err)
+	}
+	ivRaw, err := base64.StdEncoding.DecodeString(strings.TrimSpace(entry.IV))
+	if err != nil {
+		return nil, fmt.Errorf("decode stored payload iv: %w", err)
+	}
+	ciphertextRaw, err := base64.StdEncoding.DecodeString(strings.TrimSpace(entry.Ciphertext))
+	if err != nil {
+		return nil, fmt.Errorf("decode stored payload ciphertext: %w", err)
+	}
+	macRaw, err := base64.StdEncoding.DecodeString(strings.TrimSpace(entry.MAC))
+	if err != nil {
+		return nil, fmt.Errorf("decode stored payload mac: %w", err)
+	}
+	return &pb.E2EEPayload{
+		EphemeralPublicKey: ephemeralRaw,
+		Iv:                 ivRaw,
+		Ciphertext:         ciphertextRaw,
+		Mac:                macRaw,
+	}, nil
+}
+
+func (c *Client) resolveMessageMediaKey(ctx context.Context, msg *pb.Message) ([]byte, error) {
+	if msg == nil {
+		return nil, errors.New("message is nil")
+	}
+	metadata := msg.GetContentMetadata()
+	if !hasEncryptedMessageMediaMetadata(metadata) {
+		return nil, errors.New("encrypted media metadata not found")
+	}
+	payload, err := decodeStoredPayloadEntry(metadata["e2ee_media_key"])
+	if err != nil {
+		return nil, err
+	}
+
+	keyID := strings.TrimSpace(metadata["e2ee_media_key_id"])
+	if keyID == "group" || msg.GetMessageType() == pb.MessageType_MessageType_Group {
+		groupID := strings.TrimSpace(msg.GetMessageTo())
+		if groupID == "" {
+			return nil, errors.New("group media missing group id")
+		}
+		groupKey, err := c.getGroupSharedKey(ctx, groupID)
+		if err != nil {
+			return nil, err
+		}
+		plain, err := decryptPayloadWithSharedKey(groupKey, payload)
+		if err != nil {
+			return nil, err
+		}
+		if len(plain) != 32 {
+			return nil, errors.New("invalid decrypted media key length")
+		}
+		return plain, nil
+	}
+
+	privateKey, err := c.localPrivateKeyRaw()
+	if err != nil {
+		return nil, err
+	}
+	plain, err := decryptPayloadWithPrivateKey(privateKey, payload)
+	if err != nil {
+		return nil, err
+	}
+	if len(plain) != 32 {
+		return nil, errors.New("invalid decrypted media key length")
+	}
+	return plain, nil
+}
+
+func decryptMessageMediaBytes(key []byte, ivB64 string, ciphertext []byte) ([]byte, error) {
+	if len(key) != 32 {
+		return nil, errors.New("invalid media key length")
+	}
+	ivRaw, err := base64.StdEncoding.DecodeString(strings.TrimSpace(ivB64))
+	if err != nil {
+		return nil, fmt.Errorf("decode media iv: %w", err)
+	}
+	if len(ivRaw) != 12 {
+		return nil, errors.New("invalid media iv length")
+	}
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, fmt.Errorf("init media cipher: %w", err)
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("init media gcm: %w", err)
+	}
+	plaintext, err := gcm.Open(nil, ivRaw, ciphertext, nil)
+	if err != nil {
+		return nil, fmt.Errorf("decrypt media payload: %w", err)
+	}
+	return plaintext, nil
+}
+
+func (c *Client) maybeDecryptDownloadedMediaFile(ctx context.Context, msg *pb.Message, path string) (string, error) {
+	if msg == nil || strings.TrimSpace(path) == "" {
+		return path, nil
+	}
+	metadata := msg.GetContentMetadata()
+	if !hasEncryptedMessageMediaMetadata(metadata) {
+		return path, nil
+	}
+
+	ciphertext, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("read encrypted media file: %w", err)
+	}
+	key, err := c.resolveMessageMediaKey(ctx, msg)
+	if err != nil {
+		return "", err
+	}
+	plaintext, err := decryptMessageMediaBytes(key, metadata["e2ee_media_iv"], ciphertext)
+	if err != nil {
+		return "", err
+	}
+	file, err := os.CreateTemp("", "vaguebot-changepic-dec-*")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	if _, err := file.Write(plaintext); err != nil {
+		_ = os.Remove(file.Name())
+		return "", err
+	}
+	_ = os.Remove(path)
+	return filepath.Clean(file.Name()), nil
+}
+
+func (c *Client) resolveMediaDownloadURL(raw string) (string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", errors.New("empty media url")
+	}
+	if strings.HasPrefix(raw, "http://") || strings.HasPrefix(raw, "https://") {
+		return raw, nil
+	}
+
+	target := strings.TrimSpace(c.cfg.Target)
+	if target == "" {
+		return "", errors.New("empty grpc target")
+	}
+	if !strings.Contains(target, "://") {
+		target = "https://" + target
+	}
+	base, err := neturl.Parse(target)
+	if err != nil {
+		return "", fmt.Errorf("parse base target: %w", err)
+	}
+	ref, err := neturl.Parse(raw)
+	if err != nil {
+		return "", fmt.Errorf("parse media url: %w", err)
+	}
+	return base.ResolveReference(ref).String(), nil
+}
+
+func (c *Client) downloadURLToTempFile(imageURL string) (string, error) {
+	imageURL = strings.TrimSpace(imageURL)
+	if imageURL == "" {
+		return "", errors.New("image url is empty")
+	}
+	absURL, err := c.resolveMediaDownloadURL(imageURL)
+	if err != nil {
+		return "", err
+	}
+	req, err := http.NewRequest(http.MethodGet, absURL, nil)
+	if err != nil {
+		return "", err
+	}
+	if token := strings.TrimSpace(c.Token); token != "" {
+
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("http status %d", resp.StatusCode)
+	}
+
+	ext := ".jpg"
+	contentType := strings.ToLower(strings.TrimSpace(resp.Header.Get("Content-Type")))
+	switch {
+	case strings.Contains(contentType, "png"):
+		ext = ".png"
+	case strings.Contains(contentType, "webp"):
+		ext = ".webp"
+	case strings.Contains(contentType, "gif"):
+		ext = ".gif"
+	case strings.Contains(contentType, "bmp"):
+		ext = ".bmp"
+	}
+
+	tmpFile, err := os.CreateTemp("", "vaguebot-changepic-*"+ext)
+	if err != nil {
+		return "", err
+	}
+	defer tmpFile.Close()
+	if _, err := io.Copy(tmpFile, resp.Body); err != nil {
+		_ = os.Remove(tmpFile.Name())
+		return "", err
+	}
+	return filepath.Clean(tmpFile.Name()), nil
+}
+
+func (c *Client) downloadMessageObjectToTempFile(messageID string) (string, error) {
+	messageID = strings.TrimSpace(messageID)
+	if messageID == "" {
+		return "", errors.New("message id is empty")
+	}
+	downloadURL := "https://obs-sg.line-apps.com/talk/m/download.nhn?oid=" + messageID
+	req, err := http.NewRequest(http.MethodGet, downloadURL, nil)
+	if err != nil {
+		return "", err
+	}
+	if token := strings.TrimSpace(c.Token); token != "" {
+		req.Header.Set("X-Line-Access", token)
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	req.Header.Set("x-lal", "en_US")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return "", fmt.Errorf("http status %d", resp.StatusCode)
+	}
+	tmpFile, err := os.CreateTemp("", "vaguebot-changepic-msg-*.jpg")
+	if err != nil {
+		return "", err
+	}
+	defer tmpFile.Close()
+	if _, err := io.Copy(tmpFile, resp.Body); err != nil {
+		_ = os.Remove(tmpFile.Name())
+		return "", err
+	}
+	return filepath.Clean(tmpFile.Name()), nil
+}
+
+func (c *Client) applyChangePicFromLocalPath(ctx context.Context, target, localPath string, selfOnly bool) {
+	localPath = strings.TrimSpace(localPath)
+	if localPath == "" {
+		_ = c.SendMessage(ctx, target, "changepic failed: local image path is empty")
+		return
+	}
+	if _, err := os.Stat(localPath); err != nil {
+		_ = c.SendMessage(ctx, target, "changepic failed: local image path invalid")
+		return
+	}
+
+	defer os.Remove(localPath)
+
+	var err error
+	_ = err
+	_ = target
+	_ = selfOnly
+	// keep logic below unchanged
+
+	var targets []*Client
+	commandName := "changepic"
+	entityName := "bot"
+	if selfOnly {
+		targets = runningSelfbotTargets(c)
+		commandName = "selfchangepic"
+		entityName = "selfbot"
+	} else {
+		targets = runningBotTargets(c)
+	}
+	if len(targets) == 0 {
+		_ = c.SendMessage(ctx, target, commandName+" failed: no running "+entityName+" target")
+		return
+	}
+
+	success := 0
+	lastErr := ""
+	for _, bot := range targets {
+		botCID := strings.TrimSpace(bot.CurrentCID())
+		if botCID == "" {
+			botCID = strings.TrimSpace(bot.CID)
+		}
+		if botCID == "" {
+			continue
+		}
+		uploaded, upErr := bot.UploadMedia(ctx, localPath, "profile", botCID)
+		if upErr != nil {
+			lastErr = upErr.Error()
+			continue
+		}
+		if _, err := bot.UpdateProfile(ctx, map[string]string{
+			"picture_profile": strings.TrimSpace(uploaded.URL),
+			"video_profile":   "",
+		}, nil); err != nil {
+			lastErr = err.Error()
+			continue
+		}
+		success++
+	}
+
+	if success == 0 {
+		if lastErr == "" {
+			lastErr = "unknown error"
+		}
+		_ = c.SendMessage(ctx, target, commandName+" failed: "+lastErr)
+		return
+	}
+
+	msg := fmt.Sprintf("%s success: updated %d/%d %s", commandName, success, len(targets), entityName)
+	if lastErr != "" && success < len(targets) {
+		msg += " (last error: " + lastErr + ")"
+	}
+	_ = c.SendMessage(ctx, target, msg)
+}
+
+func (c *Client) applyChangePicFromURL(ctx context.Context, msg *pb.Message, target, imageURL string, selfOnly bool) {
+	if strings.TrimSpace(imageURL) == "" {
+		_ = c.SendMessage(ctx, target, "changepic failed: image url from message is empty")
+		return
+	}
+	localPath, err := c.downloadURLToTempFile(imageURL)
+	if err != nil {
+		_ = c.SendMessage(ctx, target, "changepic failed: download image url: "+err.Error())
+		return
+	}
+	decodedPath, decErr := c.maybeDecryptDownloadedMediaFile(ctx, msg, localPath)
+	if decErr != nil {
+		_ = c.SendMessage(ctx, target, "changepic failed: decrypt media: "+decErr.Error())
+		return
+	}
+	c.applyChangePicFromLocalPath(ctx, target, decodedPath, selfOnly)
+}
+
+func (c *Client) applyChangeCoverFromLocalPath(ctx context.Context, target, localPath string) {
+	localPath = strings.TrimSpace(localPath)
+	if localPath == "" {
+		_ = c.SendMessage(ctx, target, "changecover failed: local image path is empty")
+		return
+	}
+	if _, err := os.Stat(localPath); err != nil {
+		_ = c.SendMessage(ctx, target, "changecover failed: local image path invalid")
+		return
+	}
+	defer os.Remove(localPath)
+
+	targets := runningBotTargets(c)
+	if len(targets) == 0 {
+		_ = c.SendMessage(ctx, target, "changecover failed: no running bot target")
+		return
+	}
+
+	success := 0
+	lastErr := ""
+	for _, bot := range targets {
+		botCID := strings.TrimSpace(bot.CurrentCID())
+		if botCID == "" {
+			botCID = strings.TrimSpace(bot.CID)
+		}
+		if botCID == "" {
+			continue
+		}
+		uploaded, err := bot.UploadMedia(ctx, localPath, "profile", botCID)
+		if err != nil {
+			lastErr = err.Error()
+			continue
+		}
+		if _, err := bot.UpdateProfile(ctx, map[string]string{
+			"cover_picture_profile": strings.TrimSpace(uploaded.URL),
+			"cover_video_profile":   "",
+		}, nil); err != nil {
+			lastErr = err.Error()
+			continue
+		}
+		success++
+	}
+	if success == 0 {
+		if lastErr == "" {
+			lastErr = "unknown error"
+		}
+		_ = c.SendMessage(ctx, target, "changecover failed: "+lastErr)
+		return
+	}
+	msg := fmt.Sprintf("changecover success: updated %d/%d bot", success, len(targets))
+	if lastErr != "" && success < len(targets) {
+		msg += " (last error: " + lastErr + ")"
+	}
+	_ = c.SendMessage(ctx, target, msg)
+}
+
+func (c *Client) applyChangeCoverFromURL(ctx context.Context, msg *pb.Message, target, imageURL string) {
+	if strings.TrimSpace(imageURL) == "" {
+		_ = c.SendMessage(ctx, target, "changecover failed: image url from message is empty")
+		return
+	}
+	localPath, err := c.downloadURLToTempFile(imageURL)
+	if err != nil {
+		_ = c.SendMessage(ctx, target, "changecover failed: download image url: "+err.Error())
+		return
+	}
+	decodedPath, decErr := c.maybeDecryptDownloadedMediaFile(ctx, msg, localPath)
+	if decErr != nil {
+		_ = c.SendMessage(ctx, target, "changecover failed: decrypt media: "+decErr.Error())
+		return
+	}
+	c.applyChangeCoverFromLocalPath(ctx, target, decodedPath)
+}
+
+func (c *Client) handlePendingProfilePictureUpdateIfNeeded(ctx context.Context, message *pb.Message) {
+	if message == nil || message.GetContentType() != pb.ContentType_IMAGE {
+		return
+	}
+
+	// Keep one executor for image-triggered actions.
+	selfbotActive := HasActiveSelfbotClient()
+	if selfbotActive {
+		if !c.IsSelfbotClient() {
+			return
+		}
+	} else if c.IsSelfbotClient() {
+		return
+	}
+
+	target := conversationTargetFromMessage(message)
+	if target == "" {
+		return
+	}
+	senderCID := strings.TrimSpace(message.GetMessageFrom())
+	botPending, selfPending := consumePendingChangePic(target, senderCID)
+	coverPending := consumePendingChangeCover(target, senderCID)
+	if !botPending && !selfPending && !coverPending {
+		return
+	}
+
+	msgID := strings.TrimSpace(message.GetMessageId())
+	if msgID != "" && !claimCommandExecution(msgID+"#changepic") {
+		return
+	}
+
+	imageURL := mediaURLFromMessage(message)
+	if botPending {
+		if imageURL != "" {
+			c.applyChangePicFromURL(ctx, message, target, imageURL, false)
+		} else {
+			localPath, err := c.downloadMessageObjectToTempFile(strings.TrimSpace(message.GetMessageId()))
+			if err != nil {
+				_ = c.SendMessage(ctx, target, "changepic failed: download object: "+err.Error())
+				return
+			}
+			decodedPath, decErr := c.maybeDecryptDownloadedMediaFile(ctx, message, localPath)
+			if decErr != nil {
+				_ = c.SendMessage(ctx, target, "changepic failed: decrypt media: "+decErr.Error())
+				return
+			}
+			c.applyChangePicFromLocalPath(ctx, target, decodedPath, false)
+		}
+	}
+	if selfPending {
+		if imageURL != "" {
+			c.applyChangePicFromURL(ctx, message, target, imageURL, true)
+		} else {
+			localPath, err := c.downloadMessageObjectToTempFile(strings.TrimSpace(message.GetMessageId()))
+			if err != nil {
+				_ = c.SendMessage(ctx, target, "selfchangepic failed: download object: "+err.Error())
+				return
+			}
+			decodedPath, decErr := c.maybeDecryptDownloadedMediaFile(ctx, message, localPath)
+			if decErr != nil {
+				_ = c.SendMessage(ctx, target, "selfchangepic failed: decrypt media: "+decErr.Error())
+				return
+			}
+			c.applyChangePicFromLocalPath(ctx, target, decodedPath, true)
+		}
+	}
+	if coverPending {
+		if imageURL != "" {
+			c.applyChangeCoverFromURL(ctx, message, target, imageURL)
+		} else {
+			localPath, err := c.downloadMessageObjectToTempFile(strings.TrimSpace(message.GetMessageId()))
+			if err != nil {
+				_ = c.SendMessage(ctx, target, "changecover failed: download object: "+err.Error())
+				return
+			}
+			decodedPath, decErr := c.maybeDecryptDownloadedMediaFile(ctx, message, localPath)
+			if decErr != nil {
+				_ = c.SendMessage(ctx, target, "changecover failed: decrypt media: "+decErr.Error())
+				return
+			}
+			c.applyChangeCoverFromLocalPath(ctx, target, decodedPath)
+		}
+	}
+}
 
 func cekSquad(op *pb.StreamEvent) bool {
 	mumu.Lock()
@@ -236,7 +880,7 @@ func (c *Client) ChatStreamMultiEvent(ctx context.Context) error {
 					eventLog("[%s] received member invite event: %v", c.CurrentCID(), event)
 
 				case pb.EventType_EVENT_MEMBER_REMOVED:
-					if Selfbot {
+					if c.IsSelfbotClient() {
 						continue
 					}
 					go func(op *pb.StreamEvent) {
@@ -259,7 +903,7 @@ func (c *Client) ChatStreamMultiEvent(ctx context.Context) error {
 					}(event)
 
 				case pb.EventType_EVENT_MEMBER_JOINED:
-					if Selfbot {
+					if c.IsSelfbotClient() {
 						continue
 					}
 					go func(op *pb.StreamEvent) {
@@ -276,7 +920,7 @@ func (c *Client) ChatStreamMultiEvent(ctx context.Context) error {
 					}(event)
 
 				case pb.EventType_EVENT_INVITATION_CANCELED:
-					if Selfbot {
+					if c.IsSelfbotClient() {
 						continue
 					}
 					go func(op *pb.StreamEvent) {
@@ -311,10 +955,11 @@ func (c *Client) ChatStreamMultiEvent(ctx context.Context) error {
 				case pb.EventType_EVENT_SELF_CANCEL_INVITATION:
 					eventLog("[%s] received self cancel invitation event: %v", c.CurrentCID(), event)
 				case pb.EventType_EVENT_MESSAGE_RECEIVED:
-					if Selfbot {
+					if c.IsSelfbotClient() {
 						continue
 					}
 					message := event.GetMessage()
+					c.handlePendingProfilePictureUpdateIfNeeded(ctx, message)
 					plainText, err := c.decryptMessageText(ctx, message)
 					if err != nil {
 						eventLog("[%s] failed to decrypt message %s: %v", c.CurrentCID(), message.GetMessageId(), err)
@@ -322,10 +967,11 @@ func (c *Client) ChatStreamMultiEvent(ctx context.Context) error {
 					}
 					c.handleTextCommandIfNeeded(ctx, message, plainText)
 				case pb.EventType_EVENT_MESSAGE_SENT:
-					if !Selfbot {
+					if !c.IsSelfbotClient() {
 						continue
 					}
 					message := event.GetMessage()
+					c.handlePendingProfilePictureUpdateIfNeeded(ctx, message)
 					plainText, err := c.decryptMessageText(ctx, message)
 					if err != nil {
 						eventLog("[%s] failed to decrypt message %s: %v", c.CurrentCID(), message.GetMessageId(), err)
@@ -680,8 +1326,276 @@ func loadCommands() (map[string]string, error) {
 	return commands, nil
 }
 
+func pickAutoName(raw string) (string, string) {
+	selector := strings.ToLower(strings.TrimSpace(raw))
+	pool := GenName
+	source := "default"
+
+	switch selector {
+	case "th", "thai", "thailand":
+		pool = GenThaiName
+		source = "thailand"
+	case "id", "indo", "indonesia":
+		pool = GenIndonesian
+		source = "indonesia"
+	case "ar", "arb", "arab", "arabic", "rab":
+		pool = GenArabic
+		source = "arab"
+	case "kr", "kor", "korea", "korean":
+		pool = GenKoreaName
+		source = "korea"
+	case "jp", "jpn", "japan", "japanese":
+		pool = GenJapanName
+		source = "japan"
+	case "jv", "java", "jawa", "javanese":
+		pool = JavaName
+		source = "java"
+	case "us", "usa", "english", "western":
+		pool = USartist
+		source = "us"
+	}
+
+	if len(pool) == 0 {
+		return "", source
+	}
+	index := int(time.Now().UnixNano() % int64(len(pool)))
+	if index < 0 {
+		index = -index
+	}
+	return strings.TrimSpace(pool[index]), source
+}
+
+func pickAutoBio(raw string) (string, string) {
+	selector := strings.ToLower(strings.TrimSpace(raw))
+	pool := GenStatus
+	source := "default"
+
+	switch selector {
+	case "th", "thai", "thailand":
+		pool = BioThai
+		source = "thailand"
+	case "id", "indo", "indonesia":
+		pool = BioIndoneisa
+		source = "indonesia"
+	case "ar", "arb", "arab", "arabic", "rab":
+		pool = GenArabic
+		source = "arab"
+	case "kr", "kor", "korea", "korean":
+		pool = BioKorea
+		source = "korea"
+	case "jp", "jpn", "japan", "japanese":
+		pool = BioJapanese
+		source = "japan"
+	}
+
+	if len(pool) == 0 {
+		return "", source
+	}
+	index := int(time.Now().UnixNano() % int64(len(pool)))
+	if index < 0 {
+		index = -index
+	}
+	return strings.TrimSpace(pool[index]), source
+}
+
+func randomFromPool(pool []string, salt int) string {
+	if len(pool) == 0 {
+		return ""
+	}
+	n := time.Now().UnixNano() + int64(salt*7919)
+	if n < 0 {
+		n = -n
+	}
+	return strings.TrimSpace(pool[int(n%int64(len(pool)))])
+}
+
+func cutNameIfLong(name string, max int) string {
+	name = strings.TrimSpace(name)
+	if max <= 0 {
+		return name
+	}
+	runes := []rune(name)
+	if len(runes) <= max {
+		return name
+	}
+	return strings.TrimSpace(string(runes[:max]))
+}
+
+func buildGroupFacebookFlex(c *Client, group *pb.Group) (string, string, error) {
+	if group == nil {
+		return "", "", errors.New("group is nil")
+	}
+	groupID := strings.TrimSpace(group.GetGroupId())
+	groupName := strings.TrimSpace(group.GetName())
+	if groupName == "" {
+		groupName = "Unnamed Group"
+	}
+
+	memberCount := 0
+	inviteCount := 0
+	creator := ""
+	joinByTicket := false
+	if extra := group.GetExtra(); extra != nil {
+		memberCount = len(extra.GetMembers())
+		inviteCount = len(extra.GetInvitations())
+		creator = strings.TrimSpace(extra.GetCreator())
+		joinByTicket = extra.GetJoinByTicket()
+	}
+
+	coverURL := c.resolvePublicAssetURL(strings.TrimSpace(group.GetCoverPicture()))
+	avatarURL := c.resolvePublicAssetURL(strings.TrimSpace(group.GetPicture()))
+	if coverURL == "" {
+		coverURL = "https://picsum.photos/seed/vague-group-cover/1200/500"
+	}
+	if avatarURL == "" {
+		avatarURL = "https://picsum.photos/seed/vague-group-avatar/240/240"
+	}
+
+	payload := map[string]any{
+		"type":    "vflex",
+		"version": 2,
+		"meta": map[string]any{
+			"safeArea":       "true",
+			"maxHeightRatio": "0.62",
+		},
+		"altText": fmt.Sprintf("Group %s", groupName),
+		"body": map[string]any{
+			"type":            "box",
+			"direction":       "column",
+			"width":           240,
+			"height":          240,
+			"padding":         0,
+			"spacing":         0,
+			"backgroundColor": "#FFFFFF",
+			"children": []any{
+				map[string]any{
+					"type":         "image",
+					"url":          coverURL,
+					"ratio":        3.4,
+					"fit":          "cover",
+					"borderRadius": 0,
+				},
+				map[string]any{
+					"type":      "box",
+					"direction": "column",
+					"padding":   10,
+					"spacing":   6,
+					"children": []any{
+						map[string]any{
+							"type": "box", "direction": "row", "spacing": 10, "align": "center",
+							"children": []any{
+								map[string]any{"type": "image", "url": avatarURL, "width": 50, "height": 50, "fit": "cover", "borderRadius": 25},
+								map[string]any{
+									"type": "box", "direction": "column", "spacing": 2, "flex": 1,
+									"children": []any{
+										map[string]any{"type": "text", "text": groupName, "size": 14, "weight": "bold", "color": "#111827", "maxLines": 1},
+										map[string]any{"type": "text", "text": fmt.Sprintf("%d members", memberCount), "size": 11, "color": "#6B7280", "maxLines": 1},
+									},
+								},
+							},
+						},
+						map[string]any{
+							"type": "box", "direction": "row", "spacing": 6,
+							"children": []any{
+								map[string]any{"type": "badge", "text": fmt.Sprintf("ID %s", cutNameIfLong(groupID, 14)), "backgroundColor": "#E5E7EB", "textColor": "#111827", "padding": 5, "borderRadius": 8},
+								map[string]any{"type": "badge", "text": fmt.Sprintf("Inv %d", inviteCount), "backgroundColor": "#DBEAFE", "textColor": "#1E3A8A", "padding": 5, "borderRadius": 8},
+							},
+						},
+						map[string]any{
+							"type":      "box",
+							"direction": "column",
+							"padding":   8,
+							"spacing":   4,
+							"backgroundColor": "#F3F4F6",
+							"borderRadius":    10,
+							"children": []any{
+								map[string]any{"type": "text", "text": fmt.Sprintf("Creator: %s", fallbackEmpty(creator, "-")), "size": 11, "color": "#374151", "maxLines": 1},
+								map[string]any{"type": "text", "text": fmt.Sprintf("Ticket %t · E2EE %t", joinByTicket, group.GetE2EeStatus()), "size": 11, "color": "#374151", "maxLines": 1},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		return "", "", err
+	}
+	return fmt.Sprintf("Group %s", groupName), string(raw), nil
+}
+
+func fallbackEmpty(value, fallback string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return fallback
+	}
+	return value
+}
+
+func runningBotTargets(current *Client) []*Client {
+	peers := snapshotPeerClients()
+	targets := make([]*Client, 0, len(peers))
+	seen := make(map[string]struct{}, len(peers))
+
+	for _, peer := range peers {
+		if peer == nil || peer.IsSelfbotClient() {
+			continue
+		}
+		cid := strings.TrimSpace(peer.CurrentCID())
+		if cid == "" {
+			cid = strings.TrimSpace(peer.CID)
+		}
+		if cid == "" {
+			continue
+		}
+		if _, ok := seen[cid]; ok {
+			continue
+		}
+		seen[cid] = struct{}{}
+		targets = append(targets, peer)
+	}
+
+	if len(targets) == 0 && current != nil && !current.IsSelfbotClient() {
+		targets = append(targets, current)
+	}
+	return targets
+}
+
+func runningSelfbotTargets(current *Client) []*Client {
+	peers := snapshotPeerClients()
+	targets := make([]*Client, 0, len(peers))
+	seen := make(map[string]struct{}, len(peers))
+
+	for _, peer := range peers {
+		if peer == nil || !peer.IsSelfbotClient() {
+			continue
+		}
+		cid := strings.TrimSpace(peer.CurrentCID())
+		if cid == "" {
+			cid = strings.TrimSpace(peer.CID)
+		}
+		if cid == "" {
+			continue
+		}
+		if _, ok := seen[cid]; ok {
+			continue
+		}
+		seen[cid] = struct{}{}
+		targets = append(targets, peer)
+	}
+
+	if len(targets) == 0 && current != nil && current.IsSelfbotClient() {
+		targets = append(targets, current)
+	}
+	return targets
+}
+
 func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Message, plainText string) {
 	if message == nil {
+		return
+	}
+	if strings.TrimSpace(message.GetContentMetadata()[internalBotMessageMetadataKey]) == "1" {
 		return
 	}
 
@@ -701,9 +1615,6 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 	}
 
 	messageID := strings.TrimSpace(message.GetMessageId())
-	if messageID != "" && !c.markHandledMessage(messageID) {
-		return
-	}
 
 	target := strings.TrimSpace(message.GetMessageTo())
 	if message.GetMessageType() == pb.MessageType_MessageType_Private {
@@ -714,6 +1625,34 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 	}
 
 	command := strings.ToLower(parts[0])
+	if len(parts) > 1 {
+		second := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(parts[1])), ":")
+		if second == "failed" || second == "success" {
+			return
+		}
+	}
+	forceBotCommand := command == "kick" || command == "remove" || command == "leave" || command == "cancelinvite" || command == "cancel"
+	selfbotActive := HasActiveSelfbotClient()
+	if selfbotActive {
+		if forceBotCommand {
+			if c.IsSelfbotClient() {
+				return
+			}
+		} else {
+			if !c.IsSelfbotClient() {
+				return
+			}
+		}
+	} else if c.IsSelfbotClient() {
+		return
+	}
+	if !claimCommandExecution(messageID) {
+		return
+	}
+	if messageID != "" && !c.markHandledMessage(messageID) {
+		return
+	}
+
 	args := parts[1:]
 	rawArgs := strings.TrimSpace(strings.TrimPrefix(commandLine, parts[0]))
 	if command == "ping" {
@@ -744,6 +1683,155 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 		}
 		reply := fmt.Sprintf("profile: cid=%s display_name=%s user_id=%s", profile.GetCid(), profile.GetDisplayName(), profile.GetUserId())
 		_ = c.SendMessage(ctx, target, reply)
+	} else if command == "updatename" || command == "setname" {
+		name := strings.TrimSpace(rawArgs)
+		if name == "" {
+			_ = c.SendMessage(ctx, target, "updatename failed: name is required")
+			return
+		}
+		targets := runningBotTargets(c)
+		if len(targets) == 0 {
+			_ = c.SendMessage(ctx, target, "updatename failed: no running bot target")
+			return
+		}
+		okCount := 0
+		failCount := 0
+		for _, bot := range targets {
+			profile, err := bot.UpdateProfile(ctx, map[string]string{
+				"display_name": name,
+			}, nil)
+			if err != nil {
+				failCount++
+				continue
+			}
+			if profile != nil && strings.TrimSpace(profile.GetDisplayName()) != "" {
+				name = strings.TrimSpace(profile.GetDisplayName())
+			}
+			okCount++
+		}
+		_ = c.SendMessage(ctx, target, fmt.Sprintf("updatename success: %d bot updated, %d failed, name=%s", okCount, failCount, name))
+	} else if command == "autoname" {
+		targets := runningBotTargets(c)
+		if len(targets) == 0 {
+			_ = c.SendMessage(ctx, target, "autoname failed: no running bot target")
+			return
+		}
+		modeRaw := strings.TrimSpace(rawArgs)
+		mode := strings.ToLower(modeRaw)
+		used := make(map[string]struct{}, len(targets)*2)
+		okCount := 0
+		failCount := 0
+		for i, bot := range targets {
+			candidate := ""
+			source := "default"
+
+			switch mode {
+			case "":
+				first := randomFromPool(GenName, i*2+1)
+				second := randomFromPool(GenName, i*2+2)
+				candidate = strings.TrimSpace(first + " " + second)
+				source = "default"
+			case "kr", "kor", "korea", "korean":
+				candidate = randomFromPool(GenKoreaName, i+1)
+				source = "korea"
+			case "jp", "jpn", "japan", "japanese":
+				candidate = randomFromPool(GenJapanName, i+1)
+				source = "japan"
+			case "ar", "arb", "arab", "arabic", "rab":
+				candidate = randomFromPool(GenArabic, i+1)
+				source = "arab"
+			case "th", "thai", "thailand":
+				candidate = randomFromPool(GenThaiName, i+1)
+				source = "thailand"
+			case "jv", "java", "jawa", "javanese":
+				candidate = randomFromPool(JavaName, i+1)
+				source = "java"
+			case "id", "indo", "indonesia":
+				first := randomFromPool(GenIndonesian, i*2+1)
+				second := randomFromPool(GenIndonesian, i*2+2)
+				candidate = strings.TrimSpace(first + " " + second)
+				source = "indonesia"
+			case "us", "usa", "english", "western":
+				candidate = randomFromPool(USartist, i+1)
+				source = "us"
+			default:
+				candidate = fmt.Sprintf("%s%d", strings.TrimSpace(modeRaw), i+1)
+				source = "custom"
+			}
+
+			candidate = cutNameIfLong(candidate, 20)
+			for candidate != "" {
+				if _, exists := used[candidate]; !exists {
+					break
+				}
+				candidate = cutNameIfLong(candidate+fmt.Sprintf("%d", i+1), 20)
+			}
+			if candidate == "" {
+				failCount++
+				continue
+			}
+			used[candidate] = struct{}{}
+
+			if _, err := bot.UpdateProfile(ctx, map[string]string{
+				"display_name": candidate,
+			}, nil); err != nil {
+				failCount++
+				continue
+			}
+			_ = bot.SendMessage(ctx, target, fmt.Sprintf("Update name to : %s (%s)", candidate, source))
+			okCount++
+		}
+		_ = c.SendMessage(ctx, target, fmt.Sprintf("autoname done: %d bot updated, %d failed", okCount, failCount))
+	} else if command == "updatebio" || command == "setbio" {
+		bio := strings.TrimSpace(rawArgs)
+		if bio == "" {
+			_ = c.SendMessage(ctx, target, "updatebio failed: bio is required")
+			return
+		}
+		targets := runningBotTargets(c)
+		if len(targets) == 0 {
+			_ = c.SendMessage(ctx, target, "updatebio failed: no running bot target")
+			return
+		}
+		okCount := 0
+		failCount := 0
+		for _, bot := range targets {
+			profile, err := bot.UpdateProfile(ctx, map[string]string{
+				"status_message": bio,
+			}, nil)
+			if err != nil {
+				failCount++
+				continue
+			}
+			if profile != nil && strings.TrimSpace(profile.GetStatusMessage()) != "" {
+				bio = strings.TrimSpace(profile.GetStatusMessage())
+			}
+			okCount++
+		}
+		_ = c.SendMessage(ctx, target, fmt.Sprintf("updatebio success: %d bot updated, %d failed, bio=%s", okCount, failCount, bio))
+	} else if command == "autobio" {
+		bio, source := pickAutoBio(rawArgs)
+		if bio == "" {
+			_ = c.SendMessage(ctx, target, "autobio failed: bio source is empty")
+			return
+		}
+		targets := runningBotTargets(c)
+		if len(targets) == 0 {
+			_ = c.SendMessage(ctx, target, "autobio failed: no running bot target")
+			return
+		}
+		okCount := 0
+		failCount := 0
+		for _, bot := range targets {
+			if _, err := bot.UpdateProfile(ctx, map[string]string{
+				"status_message": bio,
+			}, nil); err != nil {
+				failCount++
+				continue
+			}
+			okCount++
+		}
+		_ = c.SendMessage(ctx, target, fmt.Sprintf("autobio success (%s): %d bot updated, %d failed, bio=%s", source, okCount, failCount, bio))
 	} else if command == "friends" {
 		contacts, err := c.GetFriends(ctx)
 		if err != nil {
@@ -795,7 +1883,14 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			_ = c.SendMessage(ctx, target, "search: no result")
 			return
 		}
-		_ = c.SendMessage(ctx, target, fmt.Sprintf("search: cid=%s display_name=%s", contact.GetCid(), contact.GetDisplayName()))
+		cid := strings.TrimSpace(contact.GetCid())
+		if cid == "" {
+			_ = c.SendMessage(ctx, target, "search: no result")
+			return
+		}
+		if err := c.SendContact(ctx, target, cid); err != nil {
+			_ = c.SendMessage(ctx, target, fmt.Sprintf("search: cid=%s display_name=%s", contact.GetCid(), contact.GetDisplayName()))
+		}
 	} else if command == "addfriend" {
 		identifier := strings.TrimSpace(strings.Join(args, " "))
 		if identifier == "" {
@@ -849,6 +1944,12 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 		memberCount := 0
 		if group.GetExtra() != nil {
 			memberCount = len(group.GetExtra().GetMembers())
+		}
+		altText, flexJSON, flexErr := buildGroupFacebookFlex(c, group)
+		if flexErr == nil {
+			if err := c.SendFlexMessage(ctx, target, flexJSON, altText); err == nil {
+				return
+			}
 		}
 		_ = c.SendMessage(ctx, target, fmt.Sprintf("group: id=%s name=%s members=%d", group.GetGroupId(), group.GetName(), memberCount))
 	} else if command == "groupname" {
@@ -1012,6 +2113,163 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			return
 		}
 		_ = c.SendMessage(ctx, target, fmt.Sprintf("upload success: url=%s size=%d mime=%s", uploaded.URL, uploaded.Size, uploaded.MIMEType))
+	} else if command == "sendimage" {
+		if len(args) < 1 {
+			_ = c.SendMessage(ctx, target, "sendimage failed: usage sendimage <path_or_url> [target]")
+			return
+		}
+		mediaPath := strings.TrimSpace(args[0])
+		sendTarget := target
+		if len(args) > 1 && strings.TrimSpace(args[1]) != "" {
+			sendTarget = strings.TrimSpace(args[1])
+		}
+		if err := c.SendImage(ctx, sendTarget, mediaPath); err != nil {
+			_ = c.SendMessage(ctx, target, "sendimage failed: "+err.Error())
+			return
+		}
+		_ = c.SendMessage(ctx, target, "sendimage success")
+	} else if command == "sendaudio" {
+		if len(args) < 1 {
+			_ = c.SendMessage(ctx, target, "sendaudio failed: usage sendaudio <path_or_url> [target]")
+			return
+		}
+		mediaPath := strings.TrimSpace(args[0])
+		sendTarget := target
+		if len(args) > 1 && strings.TrimSpace(args[1]) != "" {
+			sendTarget = strings.TrimSpace(args[1])
+		}
+		if err := c.SendAudio(ctx, sendTarget, mediaPath); err != nil {
+			_ = c.SendMessage(ctx, target, "sendaudio failed: "+err.Error())
+			return
+		}
+		_ = c.SendMessage(ctx, target, "sendaudio success")
+	} else if command == "sendvideo" {
+		if len(args) < 1 {
+			_ = c.SendMessage(ctx, target, "sendvideo failed: usage sendvideo <path_or_url> [target]")
+			return
+		}
+		mediaPath := strings.TrimSpace(args[0])
+		sendTarget := target
+		if len(args) > 1 && strings.TrimSpace(args[1]) != "" {
+			sendTarget = strings.TrimSpace(args[1])
+		}
+		if err := c.SendVideo(ctx, sendTarget, mediaPath); err != nil {
+			_ = c.SendMessage(ctx, target, "sendvideo failed: "+err.Error())
+			return
+		}
+		_ = c.SendMessage(ctx, target, "sendvideo success")
+	} else if command == "changepic" {
+		filePath := strings.TrimSpace(rawArgs)
+		if filePath == "" {
+			setPendingChangePic(target, strings.TrimSpace(message.GetMessageFrom()), false)
+			_ = c.SendMessage(ctx, target, "Send your image.")
+			return
+		}
+		targets := runningBotTargets(c)
+		if len(targets) == 0 {
+			_ = c.SendMessage(ctx, target, "changepic failed: no running bot target")
+			return
+		}
+
+		success := 0
+		lastErr := ""
+		for _, bot := range targets {
+			botCID := strings.TrimSpace(bot.CurrentCID())
+			if botCID == "" {
+				botCID = strings.TrimSpace(bot.CID)
+			}
+			if botCID == "" {
+				continue
+			}
+
+			uploaded, err := bot.UploadMedia(ctx, filePath, "profile", botCID)
+			if err != nil {
+				lastErr = err.Error()
+				continue
+			}
+			if _, err := bot.UpdateProfile(ctx, map[string]string{
+				"picture_profile": strings.TrimSpace(uploaded.URL),
+				"video_profile":   "",
+			}, nil); err != nil {
+				lastErr = err.Error()
+				continue
+			}
+			success++
+		}
+
+		if success == 0 {
+			if lastErr == "" {
+				lastErr = "unknown error"
+			}
+			_ = c.SendMessage(ctx, target, "changepic failed: "+lastErr)
+			return
+		}
+
+		msg := fmt.Sprintf("changepic success: updated %d/%d bot", success, len(targets))
+		if lastErr != "" && success < len(targets) {
+			msg += " (last error: " + lastErr + ")"
+		}
+		_ = c.SendMessage(ctx, target, msg)
+	} else if command == "changecover" {
+		filePath := strings.TrimSpace(rawArgs)
+		if filePath == "" {
+			setPendingChangeCover(target, strings.TrimSpace(message.GetMessageFrom()))
+			_ = c.SendMessage(ctx, target, "Send your image.")
+			return
+		}
+		c.applyChangeCoverFromLocalPath(ctx, target, filePath)
+	} else if command == "selfchangepic" {
+		filePath := strings.TrimSpace(rawArgs)
+		if filePath == "" {
+			setPendingChangePic(target, strings.TrimSpace(message.GetMessageFrom()), true)
+			_ = c.SendMessage(ctx, target, "Send your image.")
+			return
+		}
+		targets := runningSelfbotTargets(c)
+		if len(targets) == 0 {
+			_ = c.SendMessage(ctx, target, "selfchangepic failed: no running selfbot target")
+			return
+		}
+
+		success := 0
+		lastErr := ""
+		for _, bot := range targets {
+			botCID := strings.TrimSpace(bot.CurrentCID())
+			if botCID == "" {
+				botCID = strings.TrimSpace(bot.CID)
+			}
+			if botCID == "" {
+				continue
+			}
+
+			uploaded, err := bot.UploadMedia(ctx, filePath, "profile", botCID)
+			if err != nil {
+				lastErr = err.Error()
+				continue
+			}
+			if _, err := bot.UpdateProfile(ctx, map[string]string{
+				"picture_profile": strings.TrimSpace(uploaded.URL),
+				"video_profile":   "",
+			}, nil); err != nil {
+				lastErr = err.Error()
+				continue
+			}
+			success++
+		}
+
+		if success == 0 {
+			if lastErr == "" {
+				lastErr = "unknown error"
+			}
+			_ = c.SendMessage(ctx, target, "selfchangepic failed: "+lastErr)
+			return
+		}
+
+		msg := fmt.Sprintf("selfchangepic success: updated %d/%d selfbot", success, len(targets))
+		if lastErr != "" && success < len(targets) {
+			msg += " (last error: " + lastErr + ")"
+		}
+		_ = c.SendMessage(ctx, target, msg)
 	} else if command == "flexcmd" {
 		if strings.TrimSpace(rawArgs) == "" {
 			if err := c.SendFlexMessage(ctx, target, defaultVFlexTemplateJSON, "Halo Flex"); err != nil {
@@ -1101,6 +2359,24 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			_ = c.SendMessage(ctx, target, "me failed: "+err.Error())
 			return
 		}
+		if err := c.SendContact(ctx, target, targetCID); err != nil {
+			contacts, contactErr := c.GetContacts(ctx, []string{targetCID})
+			if contactErr != nil || len(contacts) == 0 || contacts[0] == nil {
+				_ = c.SendMessage(ctx, target, "me contact failed: "+err.Error())
+				return
+			}
+			contact := contacts[0]
+			_ = c.SendMessage(
+				ctx,
+				target,
+				fmt.Sprintf(
+					"contact: cid=%s display_name=%s status=%s",
+					strings.TrimSpace(contact.GetCid()),
+					strings.TrimSpace(contact.GetDisplayName()),
+					strings.TrimSpace(contact.GetStatusMessage()),
+				),
+			)
+		}
 	} else if command == "help" {
 		commands, err := loadCommands()
 		if err != nil {
@@ -1124,35 +2400,87 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			_ = c.SendMessage(ctx, target, "This command is only available in group.")
 			return
 		}
-		room := GetRoom(target)
-		bk := room.Client
+		senderCID := strings.TrimSpace(message.GetMessageFrom())
+		filterBotClients := func(clients []*Client) []*Client {
+			seen := make(map[string]struct{}, len(clients))
+			out := make([]*Client, 0, len(clients))
+			for _, cl := range clients {
+				if cl == nil {
+					continue
+				}
+				cid := strings.TrimSpace(cl.CurrentCID())
+				if cid == "" {
+					cid = strings.TrimSpace(cl.CID)
+				}
+				if cid == "" {
+					continue
+				}
+				// Selfbot must not be treated as bot in "here" command.
+				if isSelfbotCID(cid) || cid == senderCID {
+					continue
+				}
+				if _, ok := seen[cid]; ok {
+					continue
+				}
+				seen[cid] = struct{}{}
+				out = append(out, cl)
+			}
+			return out
+		}
+		allBotClients := func() []*Client {
+			clients := snapshotPeerClients()
+			if len(clients) == 0 {
+				clients = make([]*Client, 0, len(Mclient))
+				for _, cl := range Mclient {
+					clients = append(clients, cl)
+				}
+			}
+			return filterBotClients(clients)
+		}
+		refreshGroupBotClients := func(actor *Client) ([]*Client, *VagueRoom) {
+			if actor == nil {
+				actor = c
+			}
+			actor.GetSquad(target)
+			room := GetRoom(target)
+			return filterBotClients(room.Client), room
+		}
+
+		bk, room := refreshGroupBotClients(c)
 		if commandLine == "here" {
-			c.GetSquad(target)
-			aa := len(room.Client)
-			name := fmt.Sprintf("%v/%v bot's here.", aa, len(VagueClients))
+			name := fmt.Sprintf("%v/%v bot's here.", len(bk), len(allBotClients()))
 			_ = c.SendMessage(ctx, target, name)
 		} else {
-			nums := strings.Split(commandLine, "here")
+			nums := strings.SplitN(commandLine, "here", 2)
+			if len(nums) < 2 {
+				_ = c.SendMessage(ctx, target, "Usage: here <number>")
+				return
+			}
 			st := StripOut(nums[1])
 			numb, err := strconv.Atoi(st)
-			if err != nil {
+			if err != nil || numb < 0 {
+				_ = c.SendMessage(ctx, target, "Usage: here <number>")
 				return
 			}
 			client := c
-			for _, cl := range bk {
-				if cl != c {
-					client = cl
-					break
+			// Keep selfbot as controller for "here" when available,
+			// then fallback to any bot in group if needed.
+			if client == nil || !client.IsSelfbotClient() {
+				for _, cl := range bk {
+					if cl != nil {
+						client = cl
+						break
+					}
 				}
 			}
 			client.GetSquad(target)
-
-			aa := len(room.Client)
+			bk, room = refreshGroupBotClients(client)
+			aa := len(bk)
 			left := []string{}
 			if aa > numb {
 				c := aa - numb
 				ca := 0
-				list := append([]*Client{}, room.Client...)
+				list := append([]*Client{}, bk...)
 				for _, o := range list {
 					_ = o.LeaveGroup(ctx, target)
 					left = append(left, o.CID)
@@ -1161,7 +2489,7 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 						break
 					}
 				}
-				for _, cl := range room.Client {
+				for _, cl := range bk {
 					if !Contains(left, cl.CID) {
 						aa := cl.GetSquad(target)
 						if len(aa) != 0 {
@@ -1172,15 +2500,23 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 
 			} else if aa < numb {
 				all := []*Client{}
-				cuk := room.Client
-				for _, x := range VagueClients {
+				cuk := bk
+				for _, x := range allBotClients() {
 					if !InArrayCl(cuk, x) {
 						all = append(all, x)
 					}
 				}
 				g := numb - aa
 				lim := []string{}
-				for _, cl := range room.Client {
+				controllers := []*Client{}
+				if c != nil {
+					controllers = append(controllers, c)
+				}
+				controllers = append(controllers, bk...)
+				for _, cl := range controllers {
+					if cl == nil {
+						continue
+					}
 					_, room.Link, _ = cl.GenerateGroupURL(ctx, target)
 					if room.Link == "" {
 						lim = append(lim, cl.CID)
@@ -1196,7 +2532,7 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 					return
 				}
 
-				wi := client.GetSquad(target)
+				wi := filterBotClients(client.GetSquad(target))
 				room.Actor = []*Client{}
 				room.Qr = true
 				room.Lbackup = client.CID
@@ -1216,9 +2552,8 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 				time.Sleep(1 * time.Second)
 				room.Qr = false
 				_ = client.UpdateGroupJoinByTicket(ctx, target, false)
-				client.GetSquad(target)
-				room = GetRoom(target)
-				for _, cl := range room.Client {
+				bk, room = refreshGroupBotClients(client)
+				for _, cl := range bk {
 					if !Contains(left, cl.CID) {
 						aa := cl.GetSquad(target)
 						if len(aa) != 0 {
@@ -1227,9 +2562,8 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 					}
 				}
 			} else {
-				c.GetSquad(target)
-				aa := len(room.Client)
-				name := fmt.Sprintf("%v/%v bot's here.", aa, len(VagueClients))
+				bk, _ = refreshGroupBotClients(c)
+				name := fmt.Sprintf("%v/%v bot's here.", len(bk), len(allBotClients()))
 				_ = c.SendMessage(ctx, target, name)
 			}
 		}
@@ -1239,6 +2573,9 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 		room := GetRoom(target)
 		bk := room.Client
 		for _, cl := range bk {
+			if cl.IsSelfbotClient() {
+				continue
+			}
 			go cl.LeaveGroup(ctx, target)
 		}
 		Protected = Remove(Protected, target)
