@@ -54,5 +54,8 @@
   "flexaudio": "Flex audio",
   "me": "Show profile",
   "changecover": "Change bot cover",
-  "tagall": "Mention all members"
+  "tagall": "Mention all members",
+  "addall": "Mutual add friend (bots)",
+  "sp": "Speed test",
+  "speed": "Speed test"
 }

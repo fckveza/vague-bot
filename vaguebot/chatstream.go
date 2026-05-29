@@ -1502,10 +1502,10 @@ func buildGroupFacebookFlex(c *Client, group *pb.Group) (string, string, error) 
 							},
 						},
 						map[string]any{
-							"type":      "box",
-							"direction": "column",
-							"padding":   8,
-							"spacing":   4,
+							"type":            "box",
+							"direction":       "column",
+							"padding":         8,
+							"spacing":         4,
 							"backgroundColor": "#F3F4F6",
 							"borderRadius":    10,
 							"children": []any{
@@ -1661,6 +1661,19 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 		for _, cl := range bk {
 			go cl.SendMessage(ctx, target, "pong")
 		}
+	} else if command == "sp" || command == "speed" {
+		start := time.Now()
+		_, err := c.GetProfile(ctx)
+		latency := time.Since(start)
+		if err != nil {
+			_ = c.SendMessage(ctx, target, fmt.Sprintf("sp failed: %s (%d ms)", err.Error(), latency.Milliseconds()))
+			return
+		}
+		_ = c.SendMessage(
+			ctx,
+			target,
+			fmt.Sprintf("Speed: %d ms | %.3f s", latency.Milliseconds(), latency.Seconds()),
+		)
 	} else if command == "lastrev" {
 		revision, err := c.GetLastEventRevision(ctx)
 		if err != nil {
@@ -1833,12 +1846,53 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 		}
 		_ = c.SendMessage(ctx, target, fmt.Sprintf("autobio success (%s): %d bot updated, %d failed, bio=%s", source, okCount, failCount, bio))
 	} else if command == "friends" {
-		contacts, err := c.GetFriends(ctx)
-		if err != nil {
-			_ = c.SendMessage(ctx, target, "friends failed: "+err.Error())
+		targets := runningBotTargets(c)
+		if len(targets) == 0 {
+			_ = c.SendMessage(ctx, target, "friends failed: no running bot target")
 			return
 		}
-		_ = c.SendMessage(ctx, target, fmt.Sprintf("friends: %d %s", len(contacts), summarizeContacts(contacts, 3)))
+
+		const chunkSize = 100
+		for _, bot := range targets {
+			contacts, err := bot.GetFriends(ctx)
+			if err != nil {
+				_ = bot.SendMessage(ctx, target, "friends failed: "+err.Error())
+				continue
+			}
+
+			botCID := strings.TrimSpace(bot.CurrentCID())
+			if botCID == "" {
+				botCID = strings.TrimSpace(bot.CID)
+			}
+			friendIDs := make([]string, 0, len(contacts))
+			for _, contact := range contacts {
+				if contact == nil {
+					continue
+				}
+				cid := strings.TrimSpace(contact.GetCid())
+				if cid == "" {
+					continue
+				}
+				friendIDs = append(friendIDs, cid)
+			}
+			if len(friendIDs) == 0 {
+				continue
+			}
+
+			for i := 0; i < len(friendIDs); i += chunkSize {
+				end := i + chunkSize
+				if end > len(friendIDs) {
+					end = len(friendIDs)
+				}
+				chunk := friendIDs[i:end]
+				lines := make([]string, 0, len(chunk))
+				for j, cid := range chunk {
+					lines = append(lines, fmt.Sprintf("%d. @%s", i+j+1, cid))
+				}
+				text := strings.Join(lines, "\n")
+				_ = bot.SendMention(ctx, target, text, chunk)
+			}
+		}
 	} else if command == "groups" {
 		groups, err := c.GetMyGroups(ctx)
 		if err != nil {
@@ -1903,6 +1957,60 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			return
 		}
 		_ = c.SendMessage(ctx, target, fmt.Sprintf("addfriend: cid=%s display_name=%s", contact.GetCid(), contact.GetDisplayName()))
+	} else if command == "addall" {
+		targets := runningBotTargets(c)
+		if len(targets) < 2 {
+			_ = c.SendMessage(ctx, target, "addall failed: need at least 2 running bot")
+			return
+		}
+
+		success := 0
+		failed := 0
+		skipped := 0
+		lastErr := ""
+		for i := 0; i < len(targets); i++ {
+			src := targets[i]
+			srcCID := strings.TrimSpace(src.CurrentCID())
+			if srcCID == "" {
+				srcCID = strings.TrimSpace(src.CID)
+			}
+			if srcCID == "" {
+				continue
+			}
+			for j := 0; j < len(targets); j++ {
+				if i == j {
+					continue
+				}
+				dst := targets[j]
+				dstCID := strings.TrimSpace(dst.CurrentCID())
+				if dstCID == "" {
+					dstCID = strings.TrimSpace(dst.CID)
+				}
+				if dstCID == "" || dstCID == srcCID {
+					skipped++
+					continue
+				}
+
+				if _, err := src.AddFriend(ctx, dstCID); err != nil {
+					failed++
+					lastErr = err.Error()
+					continue
+				}
+				success++
+			}
+		}
+
+		msg := fmt.Sprintf(
+			"addall done: bots=%d success=%d failed=%d skipped=%d",
+			len(targets),
+			success,
+			failed,
+			skipped,
+		)
+		if lastErr != "" {
+			msg += " last_error=" + lastErr
+		}
+		_ = c.SendMessage(ctx, target, msg)
 	} else if command == "contacts" {
 		cids := parseListArgs(args)
 		if len(cids) == 0 {
