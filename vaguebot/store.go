@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -211,6 +212,73 @@ func (s *AccountStore) Upsert(account AccountRecord) error {
 	return s.saveLocked()
 }
 
+// UpdateAccountOnly updates only accounts (not selfbot) - preserves selfbot data
+func (s *AccountStore) UpdateAccountOnly(account AccountRecord) error {
+	if account.Token == "" && account.CID == "" && account.Email == "" {
+		return nil
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	index := -1
+	for i := range s.data.Accounts {
+		current := s.data.Accounts[i]
+		if account.CID != "" && current.CID == account.CID {
+			index = i
+			break
+		}
+	}
+	if index < 0 {
+		for i := range s.data.Accounts {
+			current := s.data.Accounts[i]
+			if account.Email != "" && current.Email == account.Email {
+				index = i
+				break
+			}
+			if account.Token != "" && current.Token == account.Token {
+				index = i
+				break
+			}
+		}
+	}
+
+	if index < 0 {
+		s.data.Accounts = append(s.data.Accounts, account)
+	} else {
+		existing := s.data.Accounts[index]
+		if account.CID != "" {
+			existing.CID = account.CID
+		}
+		if account.Email != "" {
+			existing.Email = account.Email
+		}
+		if account.Passwd != "" {
+			existing.Passwd = account.Passwd
+		}
+		if account.Token != "" {
+			existing.Token = account.Token
+		}
+		if account.RefreshToken != "" {
+			existing.RefreshToken = account.RefreshToken
+		}
+		if account.Revision > 0 {
+			existing.Revision = account.Revision
+		}
+		if account.DeviceID != "" {
+			existing.DeviceID = account.DeviceID
+		}
+		if account.E2EEPublic != "" {
+			existing.E2EEPublic = account.E2EEPublic
+		}
+		if account.E2EEPrivate != "" {
+			existing.E2EEPrivate = account.E2EEPrivate
+		}
+		s.data.Accounts[index] = existing
+	}
+	return s.saveLocked()
+}
+
 func (s *AccountStore) saveLocked() error {
 	dir := filepath.Dir(s.path)
 	if dir != "." && dir != "" {
@@ -223,6 +291,7 @@ func (s *AccountStore) saveLocked() error {
 	if err != nil {
 		return fmt.Errorf("encode account file: %w", err)
 	}
+	log.Printf("Store: saving %d accounts, %d selfbot accounts", len(s.data.Accounts), len(s.data.AccountsSelfbot))
 
 	tempPath := s.path + ".tmp"
 	if err := os.WriteFile(tempPath, raw, 0o600); err != nil {
@@ -231,5 +300,6 @@ func (s *AccountStore) saveLocked() error {
 	if err := os.Rename(tempPath, s.path); err != nil {
 		return fmt.Errorf("replace account file: %w", err)
 	}
+	log.Printf("Store: saved successfully to %s", s.path)
 	return nil
 }

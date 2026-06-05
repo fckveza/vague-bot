@@ -330,8 +330,11 @@ func (client *Client) finishSelfbotLogin(cid, username, token, refreshToken stri
 
 	// Save credentials to account.json
 	cfg := LoadConfig()
+	log.Printf("Selfbot: loading store from %s", cfg.AccountFile)
 	store, err := NewAccountStore(cfg.AccountFile)
-	if err == nil {
+	if err != nil {
+		log.Printf("Selfbot: failed to create store: %v", err)
+	} else {
 		account := AccountRecord{
 			CID:          cid,
 			Token:        token,
@@ -340,6 +343,7 @@ func (client *Client) finishSelfbotLogin(cid, username, token, refreshToken stri
 			E2EEPublic:   authClient.e2eePublicB64,
 			E2EEPrivate:  authClient.e2eePrivateB64,
 		}
+		log.Printf("Selfbot: saving account cid=%s token_len=%d", cid, len(token))
 		if err := store.UpsertSelfbot(account); err != nil {
 			log.Printf("Failed to save selfbot credentials: %v", err)
 		} else {

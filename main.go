@@ -24,7 +24,11 @@ func buildBotClients(
 	store *vaguebot.AccountStore,
 	requireAtLeastOne bool,
 ) ([]*vaguebot.Client, error) {
+	// Reload store from disk to ensure we have latest data
+	store, _ = vaguebot.NewAccountStore(cfg.AccountFile)
 	accounts := store.Accounts()
+	selfbotAccounts := store.AccountsSelfbot()
+	log.Printf("buildBotClients: %d accounts, %d selfbot accounts in store", len(accounts), len(selfbotAccounts))
 	if len(accounts) == 0 {
 		if requireAtLeastOne {
 			return nil, fmt.Errorf("no accounts found in %s", cfg.AccountFile)
@@ -51,7 +55,12 @@ func buildBotClients(
 	clients := make([]*vaguebot.Client, 0, len(validAccounts))
 
 	for _, account := range validAccounts {
-		client, err := vaguebot.CreateClient(ctx, account, cfg, store.Upsert)
+		// Use a persist function that doesn't overwrite selfbot accounts
+		persist := func(acc vaguebot.AccountRecord) error {
+			// Only update accounts, preserve selfbot data
+			return store.UpdateAccountOnly(acc)
+		}
+		client, err := vaguebot.CreateClient(ctx, account, cfg, persist)
 		if err != nil {
 			log.Printf("skip account cid=%s email=%s: %v", account.CID, account.Email, err)
 			continue
@@ -118,6 +127,13 @@ func main() {
 		accounts := store.AccountsSelfbot()
 		log.Printf("Selfbot: found %d saved accounts", len(accounts))
 		if len(accounts) > 0 {
+			// Reload store to ensure we have latest data including selfbot
+			storeReload, err := vaguebot.NewAccountStore(cfg.AccountFile)
+			if err == nil {
+				store = storeReload
+				log.Printf("Selfbot: reloaded store with %d accounts, %d selfbot accounts",
+					len(store.Accounts()), len(store.AccountsSelfbot()))
+			}
 			// Use existing selfbot account
 			account := accounts[0]
 			log.Printf("Selfbot: trying saved account cid=%s token_len=%d", account.CID, len(account.Token))

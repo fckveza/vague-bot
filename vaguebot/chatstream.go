@@ -1268,7 +1268,7 @@ const defaultVFlexYouTubeDemoJSON = `{
     "borderRadius":14,
     "children":[
       {"type":"text","text":"VagueTube Preview","size":16,"weight":"bold","color":"#0F172A"},
-      {"type":"video","url":"https://www.image2url.com/r2/default/videos/1779884424004-0c282c27-23b1-41d9-97a9-95c7e88f5806.mp4","ratio":1.7778,"fit":"cover","showControls":true,"autoPlay":false,"muted":false,"borderRadius":12},
+      {"type":"video","url":"https://www.image2url.com/r2/default/videos/1779884424004-0c282c27-23b1-41d9-97a9-95c7e88f5806.mp4","thumbnailUrl":"https://img.youtube.com/vi/18MJXN5n9WY/mqdefault.jpg","ratio":1.7778,"fit":"cover","showControls":true,"autoPlay":false,"muted":false,"borderRadius":12},
       {"type":"text","text":"Cara bikin Flex Video yang clean di chat Vague","size":14,"weight":"bold","color":"#111827","maxLines":2},
       {"type":"box","direction":"row","spacing":10,"align":"center","children":[
         {"type":"image","url":"https://picsum.photos/seed/vaguechannel/120/120","width":36,"height":36,"fit":"cover","borderRadius":18},
@@ -1866,6 +1866,7 @@ func (c *Client) handleTextCommandIfNeeded(ctx context.Context, message *pb.Mess
 			}
 			friendIDs := make([]string, 0, len(contacts))
 			for _, contact := range contacts {
+				fmt.Printf("Debug: botCID=%s contactCID=%s\n", botCID, contact.GetCid())
 				if contact == nil {
 					continue
 				}
